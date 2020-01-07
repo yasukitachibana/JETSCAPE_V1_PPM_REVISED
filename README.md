@@ -1,4 +1,4 @@
-# Numerical Code to Solve Relativistic Hydrodynamic Equation with Piecewise Parabolic Method (PPM)
+# Numerical Code to Solve Relativistic Ideal Hydrodynamic Equation by Piecewise Parabolic Method (PPM) in $\tau$-$\eta_{\rm s}$ Coordinates with Discretized Christoffel Symbols 
 
 ## Preparation
 
