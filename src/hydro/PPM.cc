@@ -52,6 +52,11 @@ void PPM::InitializeHydro(Parameter parameter_list) {
         int weos;
         ppm->FirstChildElement("whichEOS")->QueryIntText(&weos);
         DATA.whichEOS = weos;
+        if(DATA.whichEOS == 1){
+            string eos_files;
+            eos_files = ppm->FirstChildElement("EOSfiles")->GetText();
+            DATA.eos_files = eos_files;
+        }
 
         
         int profile_type;
@@ -156,7 +161,7 @@ void PPM::InitializeHydro(Parameter parameter_list) {
     //setup EOS
     eos = nullptr;
     switch(DATA.whichEOS){
-        case 1: eos = std::make_shared<BMW>(); break;
+        case 1: eos = std::make_shared<BMW>(DATA); break;
         case 0: eos = std::make_shared<MasslessIdeal>(); break;
         default: eos = std::make_shared<EOS>();
     }

@@ -201,7 +201,7 @@
         <store_info>0</store_info>
         <s_factor>57.00</s_factor>
         <whichEOS>1</whichEOS><!-- (1:Lattice, 0:Ideal) -->
-        <EOSfiles></EOSfiles>
+        <EOSfiles>/Users/yasukitachibana/Dropbox/Codes/JETSCAPE_V1_PPM_REVISED/src/hydro/PPM/EOS</EOSfiles>
         
         <profileType>4</profileType><!-- (0:Input[tau-eta] 1:Bjorken[tau-eta], 2:DynamicalBrick, 3:3D Gaussian[t-z] 4:Transverse Input (from Dani) [tau-eta])-->
         <addCell>1</addCell><!-- (0:Use Cell Number in IS Module, 1:Change Cell Number in this PPM Module) -->
@@ -215,7 +215,7 @@
         <deta>0.3</deta>
         <source>2</source><!-- 0:No source, 1:Causal Diff ( Abail. Only for Cartesian Now), 2:Gaussian -->
         <profileInput>/Users/yasukitachibana/Dropbox/Codes/JETSCAPE_V1_PPM_REVISED/hydro_profile/Smooth_initial.dat</profileInput><!-- Filename for Transverse Input (from Dani) -->
-        <initProfileLong>0</initProfileLong><!-- 0: Bjorken, 1:Flat+Gauss Longitudinal Profile for Transverse Input (from Dani) -->
+        <initProfileLong>1</initProfileLong><!-- 0: Bjorken, 1:Flat+Gauss Longitudinal Profile for Transverse Input (from Dani) -->
         
         <writeOutput>1</writeOutput>
         <profileOutput>ppm_profile</profileOutput>
@@ -227,6 +227,14 @@
         <rapidity_window>3.5</rapidity_window>
         <transverse_square>12</transverse_square>
         
+        <PPMsourceGauss>
+          <name>PPMsourceGauss</name>
+          <sourceInput>/Users/yasukitachibana/Dropbox/Codes/JETSCAPE_V1_PPM_REVISED/source_list</sourceInput>
+          <tau_thermal>0.0</tau_thermal>
+          <sigma_trans>0.4</sigma_trans>
+          <sigma_long>0.4</sigma_long>
+        </PPMsourceGauss>
+        
         <PPMLiquefier>
           <name>PPMLiquefier</name>
           <d_diff>0.8</d_diff>
@@ -235,13 +243,6 @@
           <sourceInput>/Users/yasukitachibana/Dropbox/Codes/JETSCAPE_V1_PPM_REVISED/build/source_ev1.txt</sourceInput>
         </PPMLiquefier>
         
-        <PPMsourceGauss>
-          <name>PPMsourceGauss</name>
-          <sourceInput>/Users/yasukitachibana/Dropbox/Codes/JETSCAPE_V1_PPM_REVISED/source_list</sourceInput>
-          <tau_thermal>0.0</tau_thermal>
-          <sigma_trans>0.4</sigma_trans>
-          <sigma_long>0.4</sigma_long>
-        </PPMsourceGauss>
         
         
     </PPM>

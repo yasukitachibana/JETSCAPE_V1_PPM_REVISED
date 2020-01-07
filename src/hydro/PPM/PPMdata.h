@@ -28,6 +28,7 @@ typedef struct init_data {
 
     double tau0;
     int whichEOS; //(1:Lattice, 0:Ideal)
+    std::string eos_files;
     
     int profileType;
     std::string profile_input_file;

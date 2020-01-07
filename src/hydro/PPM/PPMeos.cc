@@ -4,8 +4,9 @@
 
 using namespace Jetscape;
 
-BMW::BMW(){
+BMW::BMW(InitData &DATA_in):DATA(DATA_in){
     JSINFO << "<-[PPM] Equation of State: BMW ->";
+    JSINFO << "<-[PPM] EoS Data File Location: '"<<DATA.eos_files<<"' ->";
     Load();
 }
 
@@ -15,7 +16,7 @@ void BMW::Load(){
 }
 
 void BMW::Load1(){
-    std::string filename = "../src/hydro/PPM/EOS/W_B_EoS1.dat";
+    std::string filename = DATA.eos_files+"/W_B_EoS1.dat";
     std::ifstream ifs(filename.c_str());
     if(ifs.fail()) {
         JSWARN << "<-[PPM] EoS (BMW,1) File - Not Found ->"; exit(0);
@@ -35,7 +36,7 @@ void BMW::Load1(){
 }
 
 void BMW::Load2(){
-    std::string filename = "../src/hydro/PPM/EOS/W_B_EoS2.dat";
+    std::string filename = DATA.eos_files+"/W_B_EoS2.dat";
     std::ifstream ifs(filename.c_str());
     if(ifs.fail()) {
         JSWARN << "<-[PPM] EoS (BMW,2) File - Not Found ->"; exit(0);

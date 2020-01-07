@@ -1,6 +1,7 @@
 #ifndef EOS_H_
 #define EOS_H_
 
+#include "PPMdata.h"
 #include "JetScapeLogger.h"
 using namespace Jetscape;
 
@@ -73,6 +74,8 @@ class MasslessIdeal: public EOS{
 
 class BMW: public EOS{
     private:
+    
+    InitData &DATA;
 
     double e1[dim1],e2[dim2];
     double t1[dim1],t2[dim2];
@@ -99,7 +102,7 @@ class BMW: public EOS{
     { return getValueFrom(t,getTBound(),t1,t2,a1,a2); }
 
     public:
-    BMW();
+    BMW(InitData &DATA_in);
     ~BMW(){JSINFO << "<-[PPM] Deleting EoS (BMW) ->";};
     double P(double e) { return getValueFromE(e,p1,p2); }
     double T(double e) { return getValueFromE(e,t1,t2); }
