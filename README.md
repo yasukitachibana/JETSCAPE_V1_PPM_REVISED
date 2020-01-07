@@ -1,4 +1,6 @@
-#Preparation
+# Numerical Code to Solve Relativistic Hydrodybnamic Equation with Piecewise Parabolic Method (PPM)
+
+## Preparation
 
 To dowonload data file for Equatin of State, 
 move to "PPM" and run "getEOSforPPM.sh":
@@ -9,7 +11,7 @@ move to "PPM" and run "getEOSforPPM.sh":
 	cd YOUR_CODE_LOCATION
 ```
 
-#Compile and Run
+## Compile and Run
 
 With cmake:
 
@@ -33,11 +35,11 @@ You can run the code for one event by typing,
 Once finishing the run, you can find output files, 
 "ppm\_profile\_run\_0.txt" for evolving hydro profile in binary and "ppm\_hypersurface\_run\_0.txt" for freezeout hypersurface information in txt. 
 
-#NOTES
+## NOTES
 Although the hydro codes are embedded in JETSCAPE, currently there is no communication between jet evolution and hydro evolution.
 Also it should be noted that the codes to generate source term belongs to the hydro module "PPM" and are NOT considered as independent module here.
 
-#Source codes for hydro
+## Source codes for hydro
 You can find "PPM.cc" and "PPM.h" in "src/hydro" and src codes associating them in "src/hydro/PPM". Those are the codes for the ideal hydro used in "PPM\_ADS.cc"
 Blief explanations for some of them are below:
 
@@ -56,7 +58,7 @@ The code to give gaussian profile for the source generated for partons loaded in
 1. "PPM/PPMinitial.cc"
 The code to generate initial condition of hydro profile. 
 
-#XML file and Settings
+## XML file and Settings
 Since the structure is stolen from JETSCAPE, it is the same to JETCAPE codes essentially. 
 
 1. PPM
