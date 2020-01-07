@@ -17,9 +17,9 @@ With cmake:
 
 ```bash
 	mkdir build
-    cd build
-    cmake ..
-    make -j
+	cd build
+	cmake ..
+	make -j
 ```
 
 If you do not have any problem in compilation,
