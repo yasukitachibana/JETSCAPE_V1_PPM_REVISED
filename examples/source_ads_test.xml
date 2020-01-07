@@ -201,6 +201,8 @@
         <store_info>0</store_info>
         <s_factor>57.00</s_factor>
         <whichEOS>1</whichEOS><!-- (1:Lattice, 0:Ideal) -->
+        <EOSfiles></EOSfiles>
+        
         <profileType>4</profileType><!-- (0:Input[tau-eta] 1:Bjorken[tau-eta], 2:DynamicalBrick, 3:3D Gaussian[t-z] 4:Transverse Input (from Dani) [tau-eta])-->
         <addCell>1</addCell><!-- (0:Use Cell Number in IS Module, 1:Change Cell Number in this PPM Module) -->
         <T0>0.5</T0><!-- (for Bjorken, Brick, and Gaussian) -->
