@@ -1,4 +1,4 @@
-# Numerical Code to Solve Relativistic Hydrodybnamic Equation with Piecewise Parabolic Method (PPM)
+# Numerical Code to Solve Relativistic Hydrodynamic Equation with Piecewise Parabolic Method (PPM)
 
 ## Preparation
 
