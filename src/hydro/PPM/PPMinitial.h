@@ -23,7 +23,7 @@ private:
     
     void GenerateArena();
     
-    void AddEdges( );
+    void AddEdges();
     void SetBoundary(int extra_nx, int extra_ny, int extra_neta );
     void CopyThermo( std::array<int, 3> i_copy, std::array<int, 3> i_og );
     double GetX(int ix);
@@ -44,7 +44,7 @@ private:
     static const int n_x_input = 201; // Dani's 2D profile table
     const double dx_input = 0.1; // Dani's 2D profile table
     const double size_input = 10.0; // Dani's 2D profile table
-    void InitProfile2DFromFile();
+    void InitProfile2DFromFile( int run_num );
     void LoadInitProfile2D
     (std::array<std::array<double, n_x_input>, n_x_input> &e_trans );
     double ProfileEtaFlatGauss(double eta,

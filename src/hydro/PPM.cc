@@ -32,29 +32,126 @@ void PPM::InitTask()
 void PPM::InitializeHydro(Parameter parameter_list) {
     
     VERBOSE(8);
-    Welcome();
+    tinyxml2::XMLElement *ppm=GetHydroXML()->FirstChildElement("PPM");
     
-    DATA.whichEOS = 1;
-    DATA.profileType = 4;
     
-    DATA.nt = 40;
-    DATA.nx = 193;
-    DATA.ny = 193;
-    DATA.neta = 95;
-    DATA.T0 = 0.500;
-    DATA.tau0 = 0.6;
+    if (ppm) {
+        string s = ppm->FirstChildElement( "name" )->GetText();
+        JSDEBUG << s << " to be initilizied ...";
+        Welcome();
+        
+ 
+        double taus;
+        ppm->FirstChildElement("taus")->QueryDoubleText(&taus);
+        DATA.tau0 = taus;
+        
+        int info_memory;
+        ppm->FirstChildElement("store_info")->QueryIntText(&info_memory);
+        DATA.store_hydro_info_in_memory = info_memory;
+        
+        int weos;
+        ppm->FirstChildElement("whichEOS")->QueryIntText(&weos);
+        DATA.whichEOS = weos;
 
-    DATA.delta_tau = 0.3;
-    DATA.delta_x = 0.3;
-    DATA.delta_y = 0.3;
-    DATA.delta_eta = 0.3;
-    
-    DATA.source = 2;
-    
-    DATA.surface_filename_head = "surface";
-    
-    DATA.profile_input_file = "/Users/yasukitachibana/Dropbox/Codes/JETSCAPE_V1_PPM_SRC_ADS/hydro_profile/Smooth_initial.dat";
-    
+        
+        int profile_type;
+        ppm->FirstChildElement("profileType")->QueryIntText(&profile_type);
+        DATA.profileType = profile_type;
+        
+        if( DATA.profileType == 0 ){
+            double s_factor;
+            ppm->FirstChildElement("s_factor")->QueryDoubleText(&s_factor);
+            DATA.sFactor = s_factor;
+        }else if( DATA.profileType ==4 ){
+            string input_profile;
+            int init_profile_long;
+            input_profile = ppm->FirstChildElement("profileInput")->GetText();
+            ppm->FirstChildElement("initProfileLong")
+            ->QueryIntText(&init_profile_long);
+            DATA.profile_input_file = input_profile;
+            DATA.init_profile_long = init_profile_long;
+        }else if( DATA.profileType==1 ||
+                  DATA.profileType==2 ||
+                  DATA.profileType==3 ){
+            double T0;
+            ppm->FirstChildElement("T0")->QueryDoubleText(&T0);
+            DATA.T0 = T0;
+        }
+        
+
+        int add_cell;
+        ppm->FirstChildElement("addCell")->QueryIntText(&add_cell);
+        DATA.addCell = add_cell;
+        
+        int nt;
+        ppm->FirstChildElement("nt")->QueryIntText(&nt);
+        DATA.nt = nt;
+
+        double dtau;
+        ppm->FirstChildElement("dtau")->QueryDoubleText(&dtau);
+        DATA.delta_tau = dtau;
+
+        
+        if( DATA.addCell==1 || DATA.profileType != 0 ){
+            
+            int nt,nx,ny,neta;
+            ppm->FirstChildElement("nt")->QueryIntText(&nt);
+            ppm->FirstChildElement("nx")->QueryIntText(&nx);
+            ppm->FirstChildElement("ny")->QueryIntText(&ny);
+            ppm->FirstChildElement("neta")->QueryIntText(&neta);
+            DATA.nx = nx;
+            DATA.ny = ny;
+            DATA.neta = neta;
+            
+            double dx,deta;
+            ppm->FirstChildElement("dx")->QueryDoubleText(&dx);
+            ppm->FirstChildElement("deta")->QueryDoubleText(&deta);
+            DATA.delta_x = dx;
+            DATA.delta_y = dx;
+            DATA.delta_eta = deta;
+            
+            DATA.x_size = DATA.delta_x*(DATA.nx - 1);
+            DATA.y_size = DATA.delta_y*(DATA.ny - 1);
+            DATA.eta_size = DATA.delta_eta*(DATA.neta - 1);
+            
+        }
+
+        int source;
+        ppm->FirstChildElement("source")->QueryIntText(&source);
+        DATA.source = source;
+
+        
+        int write_output;
+        ppm->FirstChildElement("writeOutput")->QueryIntText(&write_output);
+        DATA.write_output = write_output;
+        if(write_output == 1){
+            string profile_output;
+            profile_output = ppm->FirstChildElement("profileOutput")->GetText();
+            DATA.profile_output = profile_output;
+        }
+        
+        int freezeout;
+        ppm->FirstChildElement("freezeout")->QueryIntText(&freezeout);
+        DATA.fo_type = freezeout;
+        if(freezeout != 0){
+            double t_fo;
+            string fo_surface;
+            ppm->FirstChildElement("T_freezeout")->QueryDoubleText(&t_fo);
+            fo_surface = ppm->FirstChildElement("surface_name")->GetText();
+            DATA.temp_fo = t_fo;
+            DATA.fo_surface = fo_surface;
+        }
+        
+        double t_sq, rap_wid;
+        ppm->FirstChildElement("rapidity_window")->QueryDoubleText(&rap_wid);
+        ppm->FirstChildElement("transverse_square")->QueryDoubleText(&t_sq);
+        DATA.rapidity_window = rap_wid;
+        DATA.transverse_square = t_sq;
+        
+    } else {
+        JSWARN << " : PPM not properly initialized in XML file ...";
+        exit(-1);
+    }
     
     //setup EOS
     eos = nullptr;
@@ -65,6 +162,7 @@ void PPM::InitializeHydro(Parameter parameter_list) {
     }
 
     //setup Initial
+    initial = nullptr;
     initial = std::unique_ptr<Initial> (new Initial( eos, DATA, arena ));
 
 }
@@ -143,7 +241,7 @@ void PPM::Welcome(){
     JSINFO << "     / ⚠ CAUTION ⚠                        /  ";
     JSINFO << "    / This JETSCAPE is HACKED with       /   ";
     JSINFO << "   / Numerical Hydrodynamics [PPM]      /    ";
-    JSINFO << "  / w/ Discritized Christoffel Symbols /     ";
+    JSINFO << "  / w/ Discretized Christoffel Symbols /     ";
     JSINFO << "  -------------------------------------      ";
     JSINFO << "        O                                    ";
     JSINFO << "           o                                 ";

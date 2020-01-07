@@ -27,7 +27,6 @@ private:
     
     int run_num;
     
-    std::string source_input_file;
     double tau_th;
     double sigma_l;
     double sigma_t;
@@ -55,6 +54,8 @@ private:
     void AddSourceAtAPoint(PartonAdS::Droplet drop,
                            double weight,
                            double r, double phi, double eta);
+    
+    std::string GenerateFilename(std::string source_input);
 
 public:
     SourceGauss( int run_num_in,

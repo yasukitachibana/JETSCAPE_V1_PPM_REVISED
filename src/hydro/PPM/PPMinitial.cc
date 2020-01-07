@@ -26,7 +26,7 @@ void Initial::InitArena( int run_num ) {
         case 1: InitProfileBjorken(); break;
         case 2: InitProfileBjorken(); break;
         case 3: InitProfile3DGaussian(); break;
-        case 4: InitProfile2DFromFile();
+        case 4: InitProfile2DFromFile( run_num );
     }
     
 }
@@ -241,17 +241,23 @@ void Initial::InitProfile3DGaussian(){
     SetBoundary( 0, 0, 0 );
 }
 
-void Initial::InitProfile2DFromFile(){
-    JSINFO << "<-[PPM] Generating Initial Condition From File (2D) ->";
+void Initial::InitProfile2DFromFile( int run_num ){
+    JSINFO << "<-[PPM] Generating Initial Condition From File (2D), Run:"<< run_num <<" ->";
     JSINFO << "<-[PPM] Input profile filename: '"+ DATA.profile_input_file+"' ->";
     JSINFO << "<-[PPM] Load File Assuming nx = ny = 201, dx = dy = 0.1 fm for Input File ->";
+    if( DATA.init_profile_long == 0 ){
+        JSINFO << "<-[PPM] Longitudinal Profile: Boost Invariant (Bjorken) ->";
+    }else if( DATA.init_profile_long == 1 ){
+        JSINFO << "<-[PPM] Longitudinal Profile: Flat+Gaussian (for 5.02TeV) ->";
+    }
     JSINFO << "<-[PPM] Initial tau = " << DATA.tau0 << "fm/c (= " << DATA.tau0/hbarc << "GeV^-1) ->";
     
     if( DATA.delta_x < 0.1 && DATA.delta_y < 0.1 ){
         JSWARN << "<-[PPM] dx, dy must be larger than 0.1 fm. ->";
         exit(-1);
+    }else if( DATA.nx%2==0||DATA.ny%2==0||DATA.neta%2==0 ){
+        JSWARN << "<-[PPM] Odd numbers are recommended for the number of fluid cells. ->";
     }
-    
     
     std::array<std::array<double, n_x_input>, n_x_input> e_trans;
     LoadInitProfile2D( e_trans );
@@ -269,8 +275,11 @@ void Initial::InitProfile2DFromFile(){
         double eta_flat  = 2.0;
         double sigma_eta = 3.1;
         double e_cm = 5020;
-        double weight = ProfileEtaFlatGauss( eta, eta_flat, sigma_eta, e_cm );
+        double weight = 1.0;
         
+        if( DATA.init_profile_long == 1 ){
+            weight = ProfileEtaFlatGauss( eta, eta_flat, sigma_eta, e_cm );
+        }
         
         for (int ix = 3; ix < DATA.nx-3; ix++) {
             const double x = GetX(ix);

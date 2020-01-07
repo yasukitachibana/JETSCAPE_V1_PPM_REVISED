@@ -15,7 +15,7 @@ Evolve::Evolve( int run_num_in, std::shared_ptr<EOS> eos_in, InitData &DATA_in, 
     grid_ny = DATA.ny;
     grid_neta = DATA.neta;
     
-    evolving = 0;
+    ppm_status = ppm_not_start;
     
     JSINFO<< "<-[PPM] Preparing Hydro Run: "<< run_num <<" ->";
     InitialSetting();
@@ -30,18 +30,6 @@ void Evolve::InitialSetting(){
     
     coord = std::make_shared<Coordinates>( DATA );
     fval = std::make_shared<FluidValuables>( eos, coord, DATA, arena );
-    
-    freezeout = std::unique_ptr<Freezeout>
-    
-    (new Freezeout( run_num, coord, DATA, arena ));
-    
-    if( DATA.source==1 ){
-        liquefier = std::unique_ptr<Liquefier>
-        (new Liquefier( run_num, coord, fval, DATA, arena ));
-    }else if(DATA.source==2){
-        source_gauss = std::unique_ptr<SourceGauss>
-        (new SourceGauss( run_num, coord, fval, DATA, arena ));
-    }
     
     if( DATA.profileType == 2 || DATA.profileType == 3 ){
         JSINFO << "<-[PPM] Set Cartesian Coordinates ->";
@@ -65,6 +53,21 @@ void Evolve::InitialSetting(){
     
     fval->SetInitialProfile();
     fval->GetTotalConservedQuantities( 1 );
+    
+    printer = std::unique_ptr<Printer>
+    (new Printer( run_num, eos, coord, DATA, arena ));
+    
+    freezeout = std::unique_ptr<Freezeout>
+    (new Freezeout( run_num, coord, DATA, arena ));
+    
+    if( DATA.source==1 ){
+        liquefier = std::unique_ptr<Liquefier>
+        (new Liquefier( run_num, coord, fval, DATA, arena ));
+    }else if(DATA.source==2){
+        source_gauss = std::unique_ptr<SourceGauss>
+        (new SourceGauss( run_num, coord, fval, DATA, arena ));
+    }
+
 
 }
 
@@ -73,26 +76,29 @@ void Evolve::EvolveIt(){
     int itmax = DATA.nt;
     std::array<int, 3> evoDir = {0,1,2};
     
-    evolving = 1;
-    
+
     //----------------------------------------------------------------
     for (int it = 0; it <= itmax; it++) {
-        // preparation for this time step-----
+
+        ppm_status = freezeout->FindFreezeoutSurface(ppm_status);
+        printer->PrintProfile(ppm_status);
+        if( ppm_status == ppm_finished ){
+            break;
+        }
         fval->SetPreviousThermalVal();
         // evolution for this time step-----
+
         JSINFO << "<-[PPM] ######################################################################################### ->";
         JSINFO
         << "<-[PPM] Starting time step: "<< it << "/" << itmax
         <<", tau (t): "<<coord->tau*hbarc<<"->"<<(coord->tau+coord->dtau)*hbarc
         <<" fm ->";
+        ppm_status = ppm_running;
         StepDtau( it, evoDir );
-        //evolving = freezeout->FindFreezeoutSurface(arena);
-        if( evolving == 0 ){
-            break;
-        }
     } /* it */
     //----------------------------------------------------------------
-    fval->SetPreviousThermalVal();
+    ppm_status = ppm_finished;
+    ppm_status = freezeout->FindFreezeoutSurface(ppm_status);
 
     JSINFO
     << "<-[PPM] Hydro Evolution Run "
@@ -626,7 +632,7 @@ void Evolve::FluxTransEta(std::array<double, 5> &flux,
     coord->CountTau( - 0.5);
     
 }
-//
+
 void Evolve::FluxTrans(std::array<double, 5> &flux,
                        const std::array<int, 3> &i_evo_m_1,
                        const std::array<int, 3> &i_evo,
@@ -646,8 +652,6 @@ void Evolve::FluxTrans(std::array<double, 5> &flux,
     coord->CountTau( -0.5 );
     
 }
-
-
 
 void Evolve::DirExchange( int it, std::array<int, 3> &evoDir ){
     if( (it+1) % 3 == 0  ){
@@ -830,3 +834,4 @@ void Evolve::DirExchange( int it, std::array<int, 3> &evoDir ){
 //    profile_ofs.close();
 //}
 
+ 

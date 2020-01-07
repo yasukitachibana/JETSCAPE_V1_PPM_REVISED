@@ -12,6 +12,7 @@
 #include "PPMfreezeout.h"
 #include "PPMprinter.h"
 
+
 #include <memory>
 
 
@@ -26,14 +27,15 @@ private:
     InitData &DATA;
     SCGrid &arena;
     
-    int evolving;
+    int ppm_status;
+
     
     std::shared_ptr<Coordinates> coord;
     std::unique_ptr<Liquefier> liquefier;
     std::unique_ptr<SourceGauss> source_gauss;
     std::unique_ptr<Freezeout> freezeout;
     std::shared_ptr<FluidValuables> fval;
-    std::shared_ptr<Printer> printer;
+    std::unique_ptr<Printer> printer;
     
     
     
@@ -153,15 +155,7 @@ private:
                                  double b_plus, double b_minus,
                                  double v_plus, double v_minus);
 
-    void DirExchange( int it, std::array<int, 3> &evoDir );
-    
-    //
-    //
-    
-    //    void Print3dProfile(Grid ***arena);
-    //    void Print3dProfileBinary(Grid ***arena);
-    //    void PrintRadialProfileBinary(Grid ***arena);
-    
+    void DirExchange( int it, std::array<int, 3> &evoDir );    
     
 public:
     Evolve( int run_num, std::shared_ptr<EOS> eos_in, InitData &DATA_in, SCGrid &arena_in );

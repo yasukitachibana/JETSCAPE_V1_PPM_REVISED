@@ -202,9 +202,9 @@
         <s_factor>57.00</s_factor>
         <whichEOS>1</whichEOS><!-- (1:Lattice, 0:Ideal) -->
         <profileType>4</profileType><!-- (0:Input[tau-eta] 1:Bjorken[tau-eta], 2:DynamicalBrick, 3:3D Gaussian[t-z] 4:Transverse Input (from Dani) [tau-eta])-->
-        <addCell>1</addCell><!-- (0:Do Not Change Cell Number Use Ones in IS Module, 1:Change Cell Number in this PPM Module) -->
-        <T0>0.5</T0>
-        <nt>69</nt>
+        <addCell>1</addCell><!-- (0:Use Cell Number in IS Module, 1:Change Cell Number in this PPM Module) -->
+        <T0>0.5</T0><!-- (for Bjorken, Brick, and Gaussian) -->
+        <nt>69</nt><!-- (Maximum Time Step) -->
         <dtau>0.3</dtau>
         <nx>193</nx>
         <ny>193</ny>
@@ -212,24 +212,30 @@
         <neta>95</neta>
         <deta>0.3</deta>
         <source>2</source><!-- 0:No source, 1:Causal Diff ( Abail. Only for Cartesian Now), 2:Gaussian -->
-        <profileInput>/Users/yasukitachibana/Dropbox/Codes/JETSCAPE_V1_PPM_SRC_ADS/hydro_profile/Smooth_initial.dat</profileInput><!-- Filename for Transverse Input (from Dani) -->
-        <profileOutput>ppm_profile_out</profileOutput>
-        <freezeoutOutput>ppm_surface</freezeoutOutput>
-        <evolutionRecord>2</evolutionRecord>
-        <T_freezeout>1.4</T_freezeout>
+        <profileInput>/Users/yasukitachibana/Dropbox/Codes/JETSCAPE_V1_PPM_REVISED/hydro_profile/Smooth_initial.dat</profileInput><!-- Filename for Transverse Input (from Dani) -->
+        <initProfileLong>0</initProfileLong><!-- 0: Bjorken, 1:Flat+Gauss Longitudinal Profile for Transverse Input (from Dani) -->
+        
+        <writeOutput>1</writeOutput>
+        <profileOutput>ppm_profile</profileOutput>
+        
+        <freezeout>1</freezeout><!-- (0:No Freezeout, 1:Iso thermal, 2, Isochronous) -->
+        <T_freezeout>0.14</T_freezeout>
         <surface_name>ppm_hypersurface</surface_name>
+        
+        <rapidity_window>3.5</rapidity_window>
+        <transverse_square>12</transverse_square>
         
         <PPMLiquefier>
           <name>PPMLiquefier</name>
           <d_diff>0.8</d_diff>
           <t_damp>1.2</t_damp>
           <tau_relax>1.0</tau_relax>
-          <sourceInput>/Users/yasukitachibana/Dropbox/Codes/JETSCAPE_V1_SRC_OUT/build/source_ev1.txt</sourceInput>
+          <sourceInput>/Users/yasukitachibana/Dropbox/Codes/JETSCAPE_V1_PPM_REVISED/build/source_ev1.txt</sourceInput>
         </PPMLiquefier>
         
         <PPMsourceGauss>
           <name>PPMsourceGauss</name>
-          <sourceInput>/Users/yasukitachibana/Dropbox/Codes/JETSCAPE_V1_PPM_SRC_ADS/source_list/source_1.txt</sourceInput>
+          <sourceInput>/Users/yasukitachibana/Dropbox/Codes/JETSCAPE_V1_PPM_REVISED/source_list</sourceInput>
           <tau_thermal>0.0</tau_thermal>
           <sigma_trans>0.4</sigma_trans>
           <sigma_long>0.4</sigma_long>

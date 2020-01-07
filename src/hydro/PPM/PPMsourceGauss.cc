@@ -28,12 +28,16 @@ SourceGauss::SourceGauss( int run_num_in,
     
     if (pliq) {
 
-        source_input_file = pliq->FirstChildElement("sourceInput")->GetText();
+        
+        std::string source_input = pliq->FirstChildElement("sourceInput")->GetText();
         pliq->FirstChildElement("tau_thermal")->QueryDoubleText(&tau_th);
         pliq->FirstChildElement("sigma_trans")->QueryDoubleText(&sigma_t);
         pliq->FirstChildElement("sigma_long")->QueryDoubleText(&sigma_l);
         
-        p_ads = std::unique_ptr<PartonAdS>(new PartonAdS( source_input_file ));
+        
+        std::string input_file_name = GenerateFilename(source_input);
+        
+        p_ads = std::unique_ptr<PartonAdS>(new PartonAdS( input_file_name ));
 
         partonE = 0.0, partonPx = 0.0, partonPy = 0.0, partonPz = 0.0;
         sourceE = 0.0, sourcePx = 0.0, sourcePy = 0.0, sourcePz = 0.0;
@@ -65,6 +69,10 @@ SourceGauss::SourceGauss( int run_num_in,
 SourceGauss::~SourceGauss(){
     JSINFO << "<-[PPM] Deleting SourceGauss ->";
 }// destructor
+
+std::string SourceGauss::GenerateFilename(std::string source_input){
+    return source_input+"/source_run_"+to_string(run_num)+".txt";
+}
 
 double SourceGauss::Correction(){
     double total_weight = 0.0;

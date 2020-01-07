@@ -31,15 +31,21 @@ typedef struct init_data {
     
     int profileType;
     std::string profile_input_file;
+    int init_profile_long;
     
     double T0;
     
     int fo_type;
     double temp_fo;
-    std::string surface_filename_head;
+    std::string fo_surface;
+
+    double rapidity_window;
+    double transverse_square;
     
     int source;
     
+    int write_output;
+    std::string profile_output;
 
 
 } InitData;

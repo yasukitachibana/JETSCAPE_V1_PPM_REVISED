@@ -18,10 +18,10 @@ PartonAdS::PartonAdS(string source_input_file){
     totalPz=0.0;
 
     LoadPartonList(source_input_file);
+    Message();    
 }
 
 PartonAdS::~PartonAdS(){
-    Message();
     droplets.clear();
     JSINFO << "<-[PPM] Deleting PartonAdS ->";
 }// destructor
@@ -104,8 +104,6 @@ void PartonAdS::LoadPartonList(string source_input_file){
             
         }
     }
-
-    Message();
 
 }
 

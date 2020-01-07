@@ -7,6 +7,7 @@
 #include "PPMgrid.h"
 #include "PPMcoord.h"
 #include "PPMeos.h"
+#include "PPMstatus.h"
 
 
 #include <string>
@@ -22,7 +23,8 @@
 class Printer{
 private:
     
-    double temp_fo;
+    double rapidity_window;
+    double transverse_square;
     
     InitData &DATA;
     SCGrid &arena;
@@ -34,6 +36,13 @@ private:
     
     int grid_nx, grid_ny, grid_neta;
     
+    std::string profile_filename;
+    
+    std::string GenerateProfileFilename();
+    
+    void SurvayConfiguration();
+    
+    double hbc3 = 1.0;
     
 public:
     Printer( int run_num_in,
@@ -42,6 +51,7 @@ public:
             InitData &DATA_in,
             SCGrid &arena_in );
     ~Printer();// destructor
+    void PrintProfile( int ppm_status );
     
     
     
