@@ -80,7 +80,7 @@ Since the structure is stolen from JETSCAPE, it is the same to JETCAPE codes ess
 
 ```<addCell>1</addCell>```: the flag to add fluid cells to those used in Trento(+Freestreaming). 
 
-```<addCell>1</addCell>```: the temperature at the center for Bjorken, Brick, and 3D Gaussian initial conditions in [GeV].
+```<T0>0.25</T0>```: the temperature at the center for Bjorken, Brick, and 3D Gaussian initial conditions in [GeV].
 
 ```<nt>60</nt>```: the maximum number of  (proper) time steps in hydro calculation. For the case of isothermal freezeout, hydro calculation can stop before the last proper time step specified here. 
 
@@ -98,7 +98,7 @@ Since the structure is stolen from JETSCAPE, it is the same to JETCAPE codes ess
 
 ```<source>2</source>```: the frag to specify the source term for energy-momentum deposition by jet. (0:No source, 1:Causal Diff ( Abailable only for Cartesian coordinates Now), 2:Gaussian)
 
-```<profileInput>../hydro_profile/Smooth_initial.dat</profileInput>```the path of the initial profile file used when ```profileType``` is set to 4.
+```<profileInput>../hydro_profile/Smooth_initial.dat</profileInput>```: the path of the initial profile file used when ```profileType``` is set to 4.
 
 ```<initProfileLong>1</initProfileLong>```: the flag to specify the longitudinal profile when ```profileType``` is set to 4. (0: Bjorken, 1: Flat+Gauss[w/ parameters for 5.02 TeV] )
 
@@ -117,7 +117,7 @@ Since the structure is stolen from JETSCAPE, it is the same to JETCAPE codes ess
 ```<transverse_square>12</transverse_square>```: the maximum absolute value of x and y in [fm] in the output files for the evolving hydro profile.
         
         
-#### 1. ```<name>PPM</name>```
+#### 1. ```<name>PPMsourceGauss/name>```
 ```<sourceInput>../source_list</sourceInput>```: the path of the directory containing the tables of sources. The file for run X must have the filename ```source_run_X.txt```. 
 
 ```<tau_thermal>0.0</tau_thermal>```: the (proper) time delay for the source injection in [fm/c]. 
