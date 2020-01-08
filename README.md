@@ -61,7 +61,6 @@ The code to give gaussian profile for the source generated for partons loaded in
 The code to generate initial condition of hydro profile. 
 
 ## XML file and Settings
-Since the structure is stolen from JETSCAPE, it is the same to JETCAPE codes essentially. 
 
 ### XML File: ```source_ads_test.xml```
 
