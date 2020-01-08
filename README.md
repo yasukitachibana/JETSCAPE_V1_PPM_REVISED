@@ -117,7 +117,7 @@ Since the structure is stolen from JETSCAPE, it is the same to JETCAPE codes ess
 ```<transverse_square>12</transverse_square>```: the maximum absolute value of x and y in [fm] in the output files for the evolving hydro profile.
         
         
-#### 1. ```<name>PPMsourceGauss/name>```
+#### 1. ```<name>PPMsourceGauss</name>```
 ```<sourceInput>../source_list</sourceInput>```: the path of the directory containing the tables of sources. The file for run X must have the filename ```source_run_X.txt```. 
 
 ```<tau_thermal>0.0</tau_thermal>```: the (proper) time delay for the source injection in [fm/c]. 
