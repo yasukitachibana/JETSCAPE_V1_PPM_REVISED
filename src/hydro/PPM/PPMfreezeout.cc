@@ -7,6 +7,7 @@ using namespace std;
 
 Freezeout::Freezeout( int run_num_in,
                      std::shared_ptr<Coordinates> coord_in,
+                     std::shared_ptr<FluidValuables> fval_in,
                      InitData &DATA_in,
                      SCGrid &arena_in
                      ):DATA(DATA_in), arena(arena_in){
@@ -15,6 +16,8 @@ Freezeout::Freezeout( int run_num_in,
     
     run_num = run_num_in;
     coord = coord_in;
+    fval = fval_in;
+    
     temp_fo = DATA.temp_fo;
     
     grid_nx = DATA.nx;
@@ -33,10 +36,10 @@ Freezeout::Freezeout( int run_num_in,
             JSINFO << "<-[PPM] Isochronous Freezeout ->";
         }
         JSINFO << "<-[PPM] Freezeout for fluid cells with |eta_s| < "<< rapidity_window <<" ->";
-
+        
         surface_filename = GenerateSurfaceFilename();
         OpenSurfaceFile();
-
+        
     }
     
     
@@ -81,7 +84,7 @@ int Freezeout::FindFreezeoutSurface( int ppm_status ){
     }else{
         return ppm_status;
     }
-
+    
 }
 
 void Freezeout::IsochronousFreezeout( int threshold ){
@@ -105,12 +108,12 @@ void Freezeout::IsochronousFreezeout( int threshold ){
         if( fabs(eta) > rapidity_window ){continue;}
         for (int ix = 3; ix < grid_nx-3; ix++) {
             for (int iy = 3; iy < grid_ny-3; iy++) {
-
+                
                 std::array<int, 3> i_cell = { ix, iy, ieta };
-
+                
                 std::array<double, 3> x_cell =
                 { coord->GetX(ix)*hbarc, coord->GetY(iy)*hbarc, eta };
-
+                
                 double temperature = arena(i_cell[0],i_cell[1],i_cell[2]).T;
                 
                 if( temperature > t_cut ){
@@ -119,7 +122,7 @@ void Freezeout::IsochronousFreezeout( int threshold ){
                 
                 double epsilon = arena(i_cell[0],i_cell[1],i_cell[2]).epsilon;
                 double pressure = arena(i_cell[0],i_cell[1],i_cell[2]).p;
-
+                
                 ofs_freezeout
                 << coord->tau*hbarc << " " //tau in [fm]
                 << x_cell[0] << " " //x in [fm]
@@ -149,14 +152,14 @@ void Freezeout::IsochronousFreezeout( int threshold ){
     }//eta
     
     ofs_freezeout << std::flush;
-     
+    
 }
 
 
 int Freezeout::FullFreezeout(){
     JSINFO
     << "<-[PPM] Finding Isothermal Freezeout Surface->";
-
+    
     
     double temp_max = 0.0;
     std::array<double, 4> dsigma = GetDsigma();
@@ -167,26 +170,26 @@ int Freezeout::FullFreezeout(){
         
         for (int ix = 3; ix < grid_nx-3; ix++) {
             for (int iy = 3; iy < grid_ny-3; iy++) {
-
+                
                 std::array<int, 3> i_cell = { ix, iy, ieta };
-
+                
                 std::array<double, 3> x_cell =
                 { coord->GetX(ix)*hbarc, coord->GetY(iy)*hbarc, eta };
-
+                
                 BulkFreezeout( i_cell, x_cell, dsigma);
                 SurfaceFreezeout( i_cell, x_cell, dsigma);
-
+                
                 if( temp_max < arena(i_cell[0],i_cell[1],i_cell[2]).T ){
                     temp_max = arena(i_cell[0],i_cell[1],i_cell[2]).T;
                 }
-        
+                
             }//y
         }//x
         
     }//eta
     
     ofs_freezeout << std::flush;
-
+    
     if( temp_max >= temp_fo ){
         JSINFO<< "<-[PPM] Maximum Temperature: " << temp_max << "GeV ->";
         return ppm_running;
@@ -199,13 +202,16 @@ int Freezeout::FullFreezeout(){
 }
 
 std::array<double, 4> Freezeout::GetDsigma(){
+    
+    double tau_surface_0 = coord->tau - 0.5 * coord->dtau;
+    
     std::array<double, 4> dsigma =
-    {                  coord->dx[0] * coord->dx[1] * (coord->tau*coord->dx[2]),
+    {                  coord->dx[0] * coord->dx[1] * (tau_surface_0*coord->dx[2]),
         -coord->dtau                * coord->dx[1] * (coord->tau*coord->dx[2]),
         -coord->dtau * coord->dx[0]                * (coord->tau*coord->dx[2]),
         -coord->dtau * coord->dx[0] * coord->dx[1]
     };
-    return dsigma;
+    return dsigma; // in GeV^{-3}
 }
 
 void Freezeout::BulkFreezeout(const std::array<int, 3> &i_cell,
@@ -226,10 +232,21 @@ void Freezeout::BulkFreezeout(const std::array<int, 3> &i_cell,
     }
     
     if( bulk_freezed_out ){
-                        
-        double epsilon = arena(i_cell[0],i_cell[1],i_cell[2]).epsilon;
-        double pressure = arena(i_cell[0],i_cell[1],i_cell[2]).p;
-
+        
+        coord->CountTau(-0.5);// freezeout surface is in-between current and previous time
+        
+        std::array<double, 5> U_surf;
+        for( int d5=0; d5<5; d5++){
+            U_surf[d5] =
+            0.5*( arena(i_cell[0],i_cell[1],i_cell[2]).U[d5]
+                 +arena(i_cell[0],i_cell[1],i_cell[2]).U_prev[d5] );
+        }
+        
+        std::array<double, 4> u_get;
+        double e_get, rhob_get, p_get, temp_get;
+        
+        fval->GetThermalVal( U_surf,u_get, e_get, rhob_get, p_get, temp_get);
+        
         ofs_freezeout
         << coord->tau*hbarc << " " //tau in [fm]
         << x_cell[0] << " " //x in [fm]
@@ -239,22 +256,25 @@ void Freezeout::BulkFreezeout(const std::array<int, 3> &i_cell,
         << 0.0 << " " //dsigma_x in [GeV^-3]
         << 0.0 << " " //dsigma_y in [GeV^-3]
         << 0.0 << " " //dsigma_eta in [GeV^-3]
-        << arena(i_cell[0],i_cell[1],i_cell[2]).u[0] << " "// u0
-        << arena(i_cell[0],i_cell[1],i_cell[2]).u[1] << " "// u1
-        << arena(i_cell[0],i_cell[1],i_cell[2]).u[2] << " "// u2
-        << arena(i_cell[0],i_cell[1],i_cell[2]).u[3] << " "// u3
-        << epsilon << " "// energy density in [GeV^4]
-        << temp_curr << " "// temparature in [GeV]
+        << u_get[0] << " "// u0
+        << u_get[1] << " "// u1
+        << u_get[2] << " "// u2
+        << u_get[3] << " "// u3
+        << e_get << " "// energy density in [GeV^4]
+        << temp_get << " "// temparature in [GeV]
         << 0.0 << " " // for muB
-        << (epsilon+pressure)/temp_curr << " " // (e+p)/T
+        << (e_get+p_get)/temp_get << " " // (e+p)/T
         << 0.0 << " " << 0.0 << " " << 0.0 << " " << 0.0 << " " << 0.0 << " " // for Wmunu
         << 0.0 << " " << 0.0 << " " << 0.0 << " " << 0.0 << " " << 0.0 << " "// for Wmunu
         << 0.0 << " " // for bulk viscosity
-        << 0.0 << " " // for rhoB
-        << 0.0 << " " << 0.0 << " " << 0.0 << " " << 0.0 << "\n"; // for qmu
+        << rhob_get << " " // for rhoB
+        << 0.0 << " " << 0.0 << " " << 0.0 << " " << 0.0 // for qmu
+        << "\n";
+        
+        coord->CountTau(0.5);
         
     }
-
+    
 }
 
 
@@ -263,13 +283,13 @@ void Freezeout::SurfaceFreezeout(const std::array<int, 3> &i_cell,
                                  const std::array<double, 4> &dsigma ){
     
     //directions
-
+    
     for(int d=0; d<3; d++){
         
         const int   ix_next = i_cell[0] + point_next[d][0];
         const int   iy_next = i_cell[1] + point_next[d][1];
         const int ieta_next = i_cell[2] + point_next[d][2];
-
+        
         double temp_curr = arena(i_cell[0],i_cell[1],i_cell[2]).T;
         double temp_next = arena(ix_next,iy_next,ieta_next).T;
         
@@ -284,41 +304,25 @@ void Freezeout::SurfaceFreezeout(const std::array<int, 3> &i_cell,
         }
         
         if( surface_freezed_out ){
-
-            int ix_surface;
-            int iy_surface;
-            int ieta_surface;
-
-            double x_surface;
-            double y_surface;
-            double eta_surface;
             
-            if(sign == 1){
-                //next
-                ix_surface   = ix_next;
-                iy_surface   = iy_next;
-                ieta_surface = ieta_next;
-                
-                x_surface   = coord->GetX(ix_next)*hbarc;
-                y_surface   = coord->GetY(iy_next)*hbarc;
-                eta_surface = coord->GetEta(ieta_next);
-                
-            }else{
-                //current
-                ix_surface   = i_cell[0];
-                iy_surface   = i_cell[1];
-                ieta_surface = i_cell[2];
-                
-                x_surface   = x_cell[0];
-                y_surface   = x_cell[1];
-                eta_surface = x_cell[2];
-                
+            
+            
+            double   x_surface = 0.5*( x_cell[0] + coord->GetX(ix_next)*hbarc );
+            double   y_surface = 0.5*( x_cell[1] + coord->GetY(iy_next)*hbarc );
+            double eta_surface = 0.5*( x_cell[2] + coord->GetEta(ieta_next) );
+            
+            std::array<double, 5> U_surf;
+            for( int d5=0; d5<5; d5++){
+                U_surf[d5] =
+                0.5*( arena(i_cell[0],i_cell[1],i_cell[2]).U[d5]
+                     +arena(ix_next,  iy_next,  ieta_next).U[d5] );
             }
             
-            double temperature = arena(ix_surface,iy_surface,ieta_surface).T;
-            double epsilon = arena(ix_surface,iy_surface,ieta_surface).epsilon;
-            double pressure = arena(ix_surface,iy_surface,ieta_surface).p;
-
+            std::array<double, 4> u_get;
+            double e_get, rhob_get, p_get, temp_get;
+            
+            fval->GetThermalVal( U_surf,u_get, e_get, rhob_get, p_get, temp_get);
+            
             ofs_freezeout
             << coord->tau*hbarc << " " //tau in [fm]
             << x_surface << " " //x in [fm]
@@ -328,19 +332,20 @@ void Freezeout::SurfaceFreezeout(const std::array<int, 3> &i_cell,
             << double(sign * point_next[d][0])*dsigma[1] << " " //dsigma_x in [GeV^-3]
             << double(sign * point_next[d][1])*dsigma[2] << " " //dsigma_y in [GeV^-3]
             <<  double(sign * point_next[d][2])*dsigma[3] << " " //dsigma_eta in [GeV^-3]
-            << arena(ix_surface,iy_surface,ieta_surface).u[0] << " "// u0
-            << arena(ix_surface,iy_surface,ieta_surface).u[1] << " "// u1
-            << arena(ix_surface,iy_surface,ieta_surface).u[2] << " "// u2
-            << arena(ix_surface,iy_surface,ieta_surface).u[3] << " "// u3
-            << epsilon << " "// energy density in [GeV^4]
-            << temperature << " "// temparature in [GeV]
+            << u_get[0] << " "// u0
+            << u_get[1] << " "// u1
+            << u_get[2] << " "// u2
+            << u_get[3] << " "// u3
+            << e_get << " "// energy density in [GeV^4]
+            << temp_get << " "// temparature in [GeV]
             << 0.0 << " " // for muB
-            << (epsilon+pressure)/temperature << " " // (e+p)/T
+            << (e_get+p_get)/temp_get << " " // (e+p)/T
             << 0.0 << " " << 0.0 << " " << 0.0 << " " << 0.0 << " " << 0.0 << " " // for Wmunu
             << 0.0 << " " << 0.0 << " " << 0.0 << " " << 0.0 << " " << 0.0 << " "// for Wmunu
             << 0.0 << " " // for bulk viscosity
-            << 0.0 << " " // for rhoB
-            << 0.0 << " " << 0.0 << " " << 0.0 << " " << 0.0 << "\n"; // for qmu
+            << rhob_get << " " // for rhoB
+            << 0.0 << " " << 0.0 << " " << 0.0 << " " << 0.0 // for qmu
+            << "\n";
             
         }
     }

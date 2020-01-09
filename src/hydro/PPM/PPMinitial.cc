@@ -141,7 +141,7 @@ void Initial::InitProfileBjorken(){
             for (int iy = 0; iy < DATA.ny; iy++) {
                 
                 arena(ix,iy,ieta).epsilon = epsilon;
-                arena(ix,iy,ieta).epsilon_prev = epsilon;
+                //arena(ix,iy,ieta).epsilon_prev = epsilon;
                 arena(ix,iy,ieta).rhob = rhob;
                 arena(ix,iy,ieta).p = p;
                 arena(ix,iy,ieta).T = temp;
@@ -152,10 +152,10 @@ void Initial::InitProfileBjorken(){
                 arena(ix,iy,ieta).u[2] = 0.0;
                 arena(ix,iy,ieta).u[3] = 0.0;
                 
-                arena(ix,iy,ieta).u_prev[0] = 1.0;
-                arena(ix,iy,ieta).u_prev[1] = 0.0;
-                arena(ix,iy,ieta).u_prev[2] = 0.0;
-                arena(ix,iy,ieta).u_prev[3] = 0.0;
+//                arena(ix,iy,ieta).u_prev[0] = 1.0;
+//                arena(ix,iy,ieta).u_prev[1] = 0.0;
+//                arena(ix,iy,ieta).u_prev[2] = 0.0;
+//                arena(ix,iy,ieta).u_prev[3] = 0.0;
                 
             }
         }
@@ -188,7 +188,7 @@ void Initial::InitProfile3DGaussian(){
                     double p = eos->P(epsilon);
                     
                     arena(ix,iy,ieta).epsilon = epsilon;
-                    arena(ix,iy,ieta).epsilon_prev = epsilon;
+//                    arena(ix,iy,ieta).epsilon_prev = epsilon;
                     arena(ix,iy,ieta).p = p;
                     arena(ix,iy,ieta).T = temp;
                     arena(ix,iy,ieta).T_prev = temp;
@@ -202,7 +202,7 @@ void Initial::InitProfile3DGaussian(){
                 }else{
                     
                     arena(ix,iy,ieta).epsilon = 0.0;
-                    arena(ix,iy,ieta).epsilon_prev = 0.0;
+//                    arena(ix,iy,ieta).epsilon_prev = 0.0;
                     arena(ix,iy,ieta).p = 0.0;
                     arena(ix,iy,ieta).T = 0.0;
                     arena(ix,iy,ieta).T_prev = 0.0;
@@ -216,10 +216,10 @@ void Initial::InitProfile3DGaussian(){
                 arena(ix,iy,ieta).u[2] = 0.0;
                 arena(ix,iy,ieta).u[3] = 0.0;
                 
-                arena(ix,iy,ieta).u_prev[0] = 1.0;
-                arena(ix,iy,ieta).u_prev[1] = 0.0;
-                arena(ix,iy,ieta).u_prev[2] = 0.0;
-                arena(ix,iy,ieta).u_prev[3] = 0.0;
+//                arena(ix,iy,ieta).u_prev[0] = 1.0;
+//                arena(ix,iy,ieta).u_prev[1] = 0.0;
+//                arena(ix,iy,ieta).u_prev[2] = 0.0;
+//                arena(ix,iy,ieta).u_prev[3] = 0.0;
                 
                 
                 //                JSINFO
@@ -296,7 +296,7 @@ void Initial::InitProfile2DFromFile( int run_num ){
                     double temp = eos->T(epsilon);
                     double p = eos->P(epsilon);
                     arena(ix,iy,ieta).epsilon = epsilon;
-                    arena(ix,iy,ieta).epsilon_prev = epsilon;
+//                    arena(ix,iy,ieta).epsilon_prev = epsilon;
                     arena(ix,iy,ieta).p = p;
                     arena(ix,iy,ieta).T = temp;
                     arena(ix,iy,ieta).T_prev = temp;
@@ -304,7 +304,7 @@ void Initial::InitProfile2DFromFile( int run_num ){
                 }else{
                     
                     arena(ix,iy,ieta).epsilon = 0.0;
-                    arena(ix,iy,ieta).epsilon_prev = 0.0;
+//                    arena(ix,iy,ieta).epsilon_prev = 0.0;
                     arena(ix,iy,ieta).p = 0.0;
                     arena(ix,iy,ieta).T = 0.0;
                     arena(ix,iy,ieta).T_prev = 0.0;
@@ -317,10 +317,10 @@ void Initial::InitProfile2DFromFile( int run_num ){
                 arena(ix,iy,ieta).u[2] = 0.0;
                 arena(ix,iy,ieta).u[3] = 0.0;
                 
-                arena(ix,iy,ieta).u_prev[0] = 1.0;
-                arena(ix,iy,ieta).u_prev[1] = 0.0;
-                arena(ix,iy,ieta).u_prev[2] = 0.0;
-                arena(ix,iy,ieta).u_prev[3] = 0.0;
+//                arena(ix,iy,ieta).u_prev[0] = 1.0;
+//                arena(ix,iy,ieta).u_prev[1] = 0.0;
+//                arena(ix,iy,ieta).u_prev[2] = 0.0;
+//                arena(ix,iy,ieta).u_prev[3] = 0.0;
                 
             }
         }
@@ -508,7 +508,7 @@ void Initial::InitProfileFromPreeq(){
                 temp = eos->T(epsilon);
 
                 arena(ix,iy,ieta).epsilon = epsilon;
-                arena(ix,iy,ieta).epsilon_prev = epsilon;
+//                arena(ix,iy,ieta).epsilon_prev = epsilon;
                 arena(ix,iy,ieta).rhob = rhob;
                 arena(ix,iy,ieta).p = p;
                 arena(ix,iy,ieta).T = temp;
@@ -519,10 +519,10 @@ void Initial::InitProfileFromPreeq(){
                 arena(ix,iy,ieta).u[2] = initial_u_y[idx];
                 arena(ix,iy,ieta).u[3] = tau_init*initial_u_eta[idx];
 
-                arena(ix,iy,ieta).u_prev[0] = initial_u_tau[idx];
-                arena(ix,iy,ieta).u_prev[1] = initial_u_x[idx];
-                arena(ix,iy,ieta).u_prev[2] = initial_u_y[idx];
-                arena(ix,iy,ieta).u_prev[3] = tau_init*initial_u_eta[idx];
+//                arena(ix,iy,ieta).u_prev[0] = initial_u_tau[idx];
+//                arena(ix,iy,ieta).u_prev[1] = initial_u_x[idx];
+//                arena(ix,iy,ieta).u_prev[2] = initial_u_y[idx];
+//                arena(ix,iy,ieta).u_prev[3] = tau_init*initial_u_eta[idx];
 
             }//y
         }//x

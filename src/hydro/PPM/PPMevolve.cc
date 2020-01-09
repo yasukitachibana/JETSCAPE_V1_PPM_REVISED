@@ -58,7 +58,7 @@ void Evolve::InitialSetting(){
     (new Printer( run_num, eos, coord, DATA, arena ));
     
     freezeout = std::unique_ptr<Freezeout>
-    (new Freezeout( run_num, coord, DATA, arena ));
+    (new Freezeout( run_num, coord, fval, DATA, arena ));
     
     if( DATA.source==1 ){
         liquefier = std::unique_ptr<Liquefier>

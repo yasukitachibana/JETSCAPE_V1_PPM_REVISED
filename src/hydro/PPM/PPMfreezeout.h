@@ -7,14 +7,14 @@
 #include "PPMgrid.h"
 #include "PPMcoord.h"
 #include "PPMstatus.h"
-
+#include "PPMfluidVal.h"
+#include "PPMsurfaceCheck.h"
 
 #include <string>
 #include <iostream>
 //#include <vector>
 //#include <math.h>
 
-#include "PPMsurfaceCheck.h"
 
 
 
@@ -30,6 +30,7 @@ private:
     SCGrid &arena;
     
     std::shared_ptr<Coordinates> coord;
+    std::shared_ptr<FluidValuables> fval;
     
     int run_num;
     
@@ -61,6 +62,7 @@ private:
 public:
     Freezeout( int run_num_in,
               std::shared_ptr<Coordinates> coord_in,
+              std::shared_ptr<FluidValuables> fval_in,
               InitData &DATA_in,
               SCGrid &arena_in );
     ~Freezeout();// destructor

@@ -217,11 +217,11 @@
         <profileInput>../hydro_profile/Smooth_initial.dat</profileInput><!-- Filename for Transverse Input (from Dani) -->
         <initProfileLong>1</initProfileLong><!-- 0: Bjorken, 1:Flat+Gauss Longitudinal Profile for Transverse Input (from Dani) -->
         
-        <writeOutput>1</writeOutput>
+        <writeOutput>0</writeOutput>
         <profileOutput>ppm_profile</profileOutput>
         
-        <freezeout>1</freezeout><!-- (0:No Freezeout, 1:Iso thermal, 2, Isochronous) -->
-        <T_freezeout>0.14</T_freezeout>
+        <freezeout>1</freezeout><!-- (0:No Freezeout, 1:Isothermal, 2, Isochronous) -->
+        <T_freezeout>0.145</T_freezeout>
         <surface_name>ppm_hypersurface</surface_name>
         <surface_check>1</surface_check>	
         

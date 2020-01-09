@@ -76,6 +76,8 @@ void FluidValuables::SetInitialProfile(){
                 = (this->*U_c)( arena(ix,iy,ieta).rhob,
                                arena(ix,iy,ieta).u[0] );
                 
+                arena(ix,iy,ieta).U_prev = arena(ix,iy,ieta).U;
+                
             }
         }
     }
@@ -138,9 +140,10 @@ void FluidValuables::SetPreviousThermalVal(){
         for (int ix = 0; ix < grid_nx; ix++) {
             for (int iy = 0; iy < grid_ny; iy++) {
                 
-                arena(ix,iy,ieta).epsilon_prev = arena(ix,iy,ieta).epsilon;
+                //arena(ix,iy,ieta).epsilon_prev = arena(ix,iy,ieta).epsilon;
                 arena(ix,iy,ieta).T_prev = arena(ix,iy,ieta).T;
-                arena(ix,iy,ieta).u_prev = arena(ix,iy,ieta).u;
+                arena(ix,iy,ieta).U_prev = arena(ix,iy,ieta).U;
+                //arena(ix,iy,ieta).u_prev = arena(ix,iy,ieta).u;
                 
                 TotalE +=
                 (this->*ZeroComp)(arena(ix,iy,ieta).U[0],
@@ -337,6 +340,40 @@ double FluidValuables::Direction(double Ux, double Uabs ){
     return ( Uabs == 0. ? 0. : Ux / Uabs);
 }
 
+void FluidValuables::CalcThermalVal( const std::array<double, 5> &U, const double Uabs,
+                                     std::array<double, 4> &u,
+                                     double &e, double &rhob, double &p, double &temp ){
+    
+    double vabs =  Uabs<1e-80 ? 0.
+    :SolveV( Uabs, U[0] );
+
+    e = (this->*GetEfromU)( Uabs, U[0], vabs );
+    rhob = 0.0;
+    p = eos->P(e);
+    temp = eos->T(e);
+
+    u[0] = 1.0/sqrt(1.0-vabs*vabs);
+    for( int d4=1; d4<4; d4++){
+        u[d4] = u[0] * vabs * Direction( U[d4], Uabs );
+    }
+    
+}
+
+void FluidValuables::GetThermalVal( const std::array<double, 5> &U,
+                                    std::array<double, 4> &u,
+                                    double &e, double &rhob, double &p, double &temp ){
+
+    double uabs2 = 0.0;
+    for( int d=0; d<3; d++){
+        uabs2 += U[d+1]*U[d+1];
+    }
+    double Uabs = sqrt(uabs2);
+    
+    CalcThermalVal( U, Uabs, u, e, rhob, p, temp );
+
+}
+
+
 void FluidValuables::SetThermalVal( const std::array<int, 3> &i ){
     
     double det = arena(i[0],i[1],i[2]).U[0]*arena(i[0],i[1],i[2]).U[0];
@@ -401,25 +438,19 @@ void FluidValuables::SetThermalVal( const std::array<int, 3> &i ){
             = U0new;
 
         }
+        
+        std::array<double, 4> u_get;
+        double e_get, rhob_get, p_get, temp_get;
+        
+        CalcThermalVal( arena(i[0],i[1],i[2]).U, Uabs,
+                        u_get, e_get, rhob_get, p_get, temp_get);
 
-        double vabs =  Uabs<1e-80 ? 0.
-        :SolveV( Uabs, arena(i[0],i[1],i[2]).U[0] );
+        arena(i[0],i[1],i[2]).u = u_get;
+        arena(i[0],i[1],i[2]).epsilon = e_get;
+        arena(i[0],i[1],i[2]).rhob = rhob_get;
+        arena(i[0],i[1],i[2]).p = p_get;
+        arena(i[0],i[1],i[2]).T = temp_get;
 
-        arena(i[0],i[1],i[2]).epsilon
-        = (this->*GetEfromU)( Uabs, arena(i[0],i[1],i[2]).U[0], vabs );
-        arena(i[0],i[1],i[2]).rhob = 0.0;
-        arena(i[0],i[1],i[2]).p = eos->P(arena(i[0],i[1],i[2]).epsilon);
-        arena(i[0],i[1],i[2]).T = eos->T(arena(i[0],i[1],i[2]).epsilon);
-
-        arena(i[0],i[1],i[2]).u[0] = 1.0/sqrt(1.0-vabs*vabs);
-        for( int d4=1; d4<4; d4++){
-            arena(i[0],i[1],i[2]).u[d4]
-            =
-            arena(i[0],i[1],i[2]).u[0]
-            * vabs
-            * Direction( arena(i[0],i[1],i[2]).U[d4], Uabs );
-
-        }
     }
 }
 

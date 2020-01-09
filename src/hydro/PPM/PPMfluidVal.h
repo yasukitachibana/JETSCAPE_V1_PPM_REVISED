@@ -51,8 +51,12 @@ private:
     double ZComp( double U0, double U3, double eta);
     double DiffCart(double Uabs, double U0, double x);
     double EfromUCart( double Uabs, double U0, double vtilde);
-
+    
     void CopyArena( std::array<int, 3> i_copy, std::array<int, 3> i_og);
+
+    void CalcThermalVal( const std::array<double, 5> &U, const double Uabs,
+                         std::array<double, 4> &u,
+                         double &e, double &rhob, double &p, double &temp );
     
 public:
     FluidValuables(std::shared_ptr<EOS> eos_in,
@@ -70,6 +74,9 @@ public:
     void GetTotalConservedQuantities( int init );
     
     void SetThermalVal( const std::array<int, 3> &i );
+    void GetThermalVal( const std::array<double, 5> &U,
+                        std::array<double, 4> &u,
+                        double &e, double &rhob, double &p, double &temp );
     
     void SetBoundary();
     double SolveV(double Uabs, double U0);

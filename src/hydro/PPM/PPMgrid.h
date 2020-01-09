@@ -78,7 +78,7 @@ class GridT
 typedef struct {
 
     double epsilon;
-    double epsilon_prev;
+    //double epsilon_prev;
 
     double rhob;
     double p;
@@ -87,8 +87,9 @@ typedef struct {
     double T_prev;
     
     std::array<double, 5> U;
+    std::array<double, 5> U_prev;
     std::array<double, 4> u;
-    std::array<double, 4> u_prev;
+    //std::array<double, 4> u_prev;
     
 } FluidCell;
 
