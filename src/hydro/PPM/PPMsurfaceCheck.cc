@@ -132,10 +132,16 @@ void SurfaceCheck::DoCheck(){
 
 void SurfaceCheck::EndMessage(){
     
-    cout << "total energy = " << total_energy << endl;
-    cout << "total momx   = " << total_momx << endl;
-    cout << "total momy   = " << total_momy << endl;
-    cout << "total momz   = " << total_momz << endl;
+    JSINFO
+    << "<-[PPM] Conserved Quantities Reconstructed from Freezeout Surface->";
+    
+    JSINFO << "total energy = " << total_energy << " GeV";
+    JSINFO << "total momx   = " << total_momx   << " GeV";
+    JSINFO << "total momy   = " << total_momy   << " GeV";
+    JSINFO << "total momz   = " << total_momz   << " GeV";
+    
+    JSINFO
+    << "<-[PPM] ---------------------------------------------------------->";
     
 }
 
