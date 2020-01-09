@@ -145,6 +145,9 @@ void PPM::InitializeHydro(Parameter parameter_list) {
             fo_surface = ppm->FirstChildElement("surface_name")->GetText();
             DATA.temp_fo = t_fo;
             DATA.fo_surface = fo_surface;
+            int surf_check;
+            ppm->FirstChildElement("surface_check")->QueryIntText(&surf_check);
+            DATA.surface_check = surf_check;
         }
         
         double t_sq, rap_wid;

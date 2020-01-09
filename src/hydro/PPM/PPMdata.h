@@ -39,6 +39,7 @@ typedef struct init_data {
     int fo_type;
     double temp_fo;
     std::string fo_surface;
+    int surface_check;
 
     double rapidity_window;
     double transverse_square;

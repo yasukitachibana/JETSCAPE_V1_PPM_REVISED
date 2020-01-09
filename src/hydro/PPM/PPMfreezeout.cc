@@ -71,6 +71,14 @@ int Freezeout::FindFreezeoutSurface( int ppm_status ){
             IsochronousFreezeout( 0 );
         }
         ofs_freezeout.close();
+        if( DATA.surface_check == 1 ){
+            
+            std::unique_ptr<SurfaceCheck> surf_check(new SurfaceCheck(surface_filename));
+            surf_check->DoCheck();
+            
+        }
+        return ppm_status;
+    }else{
         return ppm_status;
     }
 
@@ -269,10 +277,10 @@ void Freezeout::SurfaceFreezeout(const std::array<int, 3> &i_cell,
         bool surface_freezed_out = false;
         if( temp_curr > temp_fo  && temp_next <= temp_fo) { //cooling
             sign = 1;
-            bool surface_freezed_out = true;
+            surface_freezed_out = true;
         }else if( temp_curr <= temp_fo  && temp_next > temp_fo ){//heating
             sign = -1;
-            bool surface_freezed_out = true;
+            surface_freezed_out = true;
         }
         
         if( surface_freezed_out ){
@@ -295,7 +303,7 @@ void Freezeout::SurfaceFreezeout(const std::array<int, 3> &i_cell,
                 y_surface   = coord->GetY(iy_next)*hbarc;
                 eta_surface = coord->GetEta(ieta_next);
                 
-            }else if(sign == -1){
+            }else{
                 //current
                 ix_surface   = i_cell[0];
                 iy_surface   = i_cell[1];
