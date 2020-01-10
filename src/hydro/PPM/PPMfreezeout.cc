@@ -98,10 +98,10 @@ void Freezeout::IsochronousFreezeout( int threshold ){
     }else{
         t_cut = 50000.0;
         JSINFO
-        << "<-[PPM] Finding Isochronous Freezeout Surface for All Fluid Cells->";
+        << "<-[PPM] Finding Isochronous Freezeout Surface for All Fluid Cells at tau = "<< coord->tau*hbarc <<" fm/c ->";
     }
     
-    std::array<double, 4> dsigma = GetDsigma();
+    std::array<double, 4> dsigma = GetDsigma( 0 );
     
     for (int ieta = 3; ieta < grid_neta-3; ieta++) {
         double eta = coord->GetEta(ieta);
@@ -116,7 +116,7 @@ void Freezeout::IsochronousFreezeout( int threshold ){
                 
                 double temperature = arena(i_cell[0],i_cell[1],i_cell[2]).T;
                 
-                if( temperature > t_cut ){
+                if( temperature > t_cut || temperature < DBL_EPSILON ){
                     continue;
                 }
                 
@@ -144,7 +144,8 @@ void Freezeout::IsochronousFreezeout( int threshold ){
                 << 0.0 << " " << 0.0 << " " << 0.0 << " " << 0.0 << " " << 0.0 << " "// for Wmunu
                 << 0.0 << " " // for bulk viscosity
                 << 0.0 << " " // for rhoB
-                << 0.0 << " " << 0.0 << " " << 0.0 << " " << 0.0 << "\n"; // for qmu
+                << 0.0 << " " << 0.0 << " " << 0.0 << " " << 0.0
+                << "\n"; // for qmu
                 
             }//y
         }//x
@@ -162,12 +163,11 @@ int Freezeout::FullFreezeout(){
     
     
     double temp_max = 0.0;
-    std::array<double, 4> dsigma = GetDsigma();
+    std::array<double, 4> dsigma = GetDsigma( 1 );
     
     for (int ieta = 3; ieta < grid_neta-3; ieta++) {
         double eta = coord->GetEta(ieta);
         if( fabs(eta) > rapidity_window ){continue;}
-        
         for (int ix = 3; ix < grid_nx-3; ix++) {
             for (int iy = 3; iy < grid_ny-3; iy++) {
                 
@@ -201,9 +201,14 @@ int Freezeout::FullFreezeout(){
     
 }
 
-std::array<double, 4> Freezeout::GetDsigma(){
+std::array<double, 4> Freezeout::GetDsigma( int time_shift ){
     
-    double tau_surface_0 = coord->tau - 0.5 * coord->dtau;
+    
+    double tau_surface_0 = coord->tau;
+    
+    if( time_shift == 1 ){
+        tau_surface_0 -= 0.5 * coord->dtau;
+    }
     
     std::array<double, 4> dsigma =
     {                  coord->dx[0] * coord->dx[1] * (tau_surface_0*coord->dx[2]),
@@ -268,7 +273,7 @@ void Freezeout::BulkFreezeout(const std::array<int, 3> &i_cell,
         << 0.0 << " " << 0.0 << " " << 0.0 << " " << 0.0 << " " << 0.0 << " "// for Wmunu
         << 0.0 << " " // for bulk viscosity
         << rhob_get << " " // for rhoB
-        << 0.0 << " " << 0.0 << " " << 0.0 << " " << 0.0 // for qmu
+        << 0.0 << " " << 0.0 << " " << 0.0 << " " << 0.0  // for qmu
         << "\n";
         
         coord->CountTau(0.5);
@@ -305,8 +310,6 @@ void Freezeout::SurfaceFreezeout(const std::array<int, 3> &i_cell,
         
         if( surface_freezed_out ){
             
-            
-            
             double   x_surface = 0.5*( x_cell[0] + coord->GetX(ix_next)*hbarc );
             double   y_surface = 0.5*( x_cell[1] + coord->GetY(iy_next)*hbarc );
             double eta_surface = 0.5*( x_cell[2] + coord->GetEta(ieta_next) );
@@ -320,7 +323,7 @@ void Freezeout::SurfaceFreezeout(const std::array<int, 3> &i_cell,
             
             std::array<double, 4> u_get;
             double e_get, rhob_get, p_get, temp_get;
-            
+                        
             fval->GetThermalVal( U_surf,u_get, e_get, rhob_get, p_get, temp_get);
             
             ofs_freezeout
@@ -331,7 +334,7 @@ void Freezeout::SurfaceFreezeout(const std::array<int, 3> &i_cell,
             << 0.0 << " " //dsigma_tau in [GeV^-3]
             << double(sign * point_next[d][0])*dsigma[1] << " " //dsigma_x in [GeV^-3]
             << double(sign * point_next[d][1])*dsigma[2] << " " //dsigma_y in [GeV^-3]
-            <<  double(sign * point_next[d][2])*dsigma[3] << " " //dsigma_eta in [GeV^-3]
+            << double(sign * point_next[d][2])*dsigma[3] << " " //dsigma_eta in [GeV^-3]
             << u_get[0] << " "// u0
             << u_get[1] << " "// u1
             << u_get[2] << " "// u2

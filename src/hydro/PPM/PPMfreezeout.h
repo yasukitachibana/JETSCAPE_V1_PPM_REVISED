@@ -12,6 +12,7 @@
 
 #include <string>
 #include <iostream>
+#include <cfloat>
 //#include <vector>
 //#include <math.h>
 
@@ -51,7 +52,7 @@ private:
     void SurfaceFreezeout(const std::array<int, 3> &i_cell,
                           const std::array<double, 3> &x_cell,
                           const std::array<double, 4> &dsigma );
-    std::array<double, 4> GetDsigma();
+    std::array<double, 4> GetDsigma( int time_shift );
     
     std::array<std::array<int, 3>, 3> point_next{{{1,0,0},
                                                   {0,1,0},
