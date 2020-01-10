@@ -116,7 +116,7 @@ void Freezeout::IsochronousFreezeout( int threshold ){
                 
                 double temperature = arena(i_cell[0],i_cell[1],i_cell[2]).T;
                 
-                if( temperature > t_cut || temperature < DBL_EPSILON ){
+                if( temperature > t_cut || temperature < DBL_MIN ){
                     continue;
                 }
                 
