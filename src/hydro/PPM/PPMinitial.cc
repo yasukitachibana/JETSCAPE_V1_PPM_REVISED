@@ -21,15 +21,22 @@ void Initial::InitArena( int run_num ) {
     if( run_num == 0 ){
         GenerateArena();
     }
-    switch( DATA.profileType){
-        case 0: InitProfileFromPreeq(); break;
-        case 1: InitProfileBjorken(); break;
-        case 2: InitProfileBjorken(); break;
-        case 3: InitProfile3DGaussian(); break;
-        case 4: InitProfile2DFromFile( run_num );
+    
+    
+    if(DATA.test_mode == 0){
+        switch( DATA.profileType){
+            case 0: InitProfileFromPreeq(); break;
+            case 1: InitProfileBjorken(); break;
+            case 2: InitProfileBjorken(); break;
+            case 3: InitProfile3DGaussian(); break;
+            case 4: InitProfile2DFromFile( run_num );
+        }
+    }else{
+        InitTestMode();
     }
     
 }
+
 
 void Initial::GenerateArena() {
     
@@ -126,6 +133,60 @@ void Initial::AddEdges( ){
     JSINFO << "x_size = "     << DATA.x_size << " fm, y_size = "   << DATA.y_size << " fm, eta_size(z_size) = " << DATA.eta_size << " (fm)";
     JSINFO << "--------------------------";
 
+}
+
+void Initial::InitTestMode(){
+    JSINFO << "<-[PPM] Generating Test Mode Initial Condition ->";
+    
+    double temp = DATA.temp_fo - 0.05;
+    double epsilon = eos->E(temp);
+    double p = eos->P(epsilon);
+
+    
+    for (int ix = 3; ix < DATA.nx-3;  ix++) {
+        for (int iy = 3; iy < DATA.ny-3; iy++) {
+            for (int ieta = 3; ieta < DATA.neta-3; ieta++) {
+                
+                arena(ix,iy,ieta).T = temp;
+                arena(ix,iy,ieta).T_prev = temp;
+
+                arena(ix,iy,ieta).epsilon = epsilon;
+                arena(ix,iy,ieta).rhob = 0.0;
+                arena(ix,iy,ieta).p = eos->P(epsilon);
+                
+                arena(ix,iy,ieta).u[0] = 1.0;
+                arena(ix,iy,ieta).u[1] = 0.0;
+                arena(ix,iy,ieta).u[2] = 0.0;
+                arena(ix,iy,ieta).u[3] = 0.0;
+
+                
+                
+            }
+        }
+    }
+    
+    const int ixc = int(DATA.nx/2);
+    const int iyc = int(DATA.ny/2);
+    const int ietac = int(DATA.neta/2);
+
+    temp = DATA.temp_fo + 0.02;
+    epsilon = eos->E(temp);
+    p = eos->P(epsilon);
+
+    arena(ixc,iyc,ietac).T = temp;
+    arena(ixc,iyc,ietac).T_prev = temp;
+
+    arena(ixc,iyc,ietac).epsilon = epsilon;
+    arena(ixc,iyc,ietac).rhob = 0.0;
+    arena(ixc,iyc,ietac).p = eos->P(epsilon);
+    
+    arena(ixc,iyc,ietac).u[0] = 1.0;
+    arena(ixc,iyc,ietac).u[1] = 0.0;
+    arena(ixc,iyc,ietac).u[2] = 0.0;
+    arena(ixc,iyc,ietac).u[3] = 0.0;
+    
+    SetBoundary( 0, 0, 0 );
+    
 }
 
 void Initial::InitProfileBjorken(){

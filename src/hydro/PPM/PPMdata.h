@@ -5,6 +5,8 @@
 
 typedef struct init_data {
 
+    int test_mode;
+    
     int addCell;
     
     double sFactor;

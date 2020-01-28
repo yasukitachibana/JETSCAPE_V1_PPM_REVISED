@@ -7,6 +7,7 @@
 #include "PPMeos.h"
 #include "PPMcoord.h"
 
+#include <cfloat>
 
 class FluidValuables{
     
@@ -33,6 +34,8 @@ private:
     double (FluidValuables::*ThirdComp)( double U0, double U3, double eta);
     double (FluidValuables::*Difference)(double U, double vx, double p);
     double (FluidValuables::*GetEfromU)( double Uabs, double U0, double vtilde);
+    std::string (FluidValuables::*AskDirection3)( int direction );
+    std::string (FluidValuables::*AskDirection5)( int d5 );
 
     
     double U_tau( double e, double p, double u0);
@@ -42,6 +45,8 @@ private:
     double EtaComp( double U0, double U3, double eta);
     double Diff(double Uabs, double U0, double x);
     double EfromU( double Uabs, double U0, double vtilde);
+    std::string AskDirection3TauEta( int direction );
+    std::string AskDirection5TauEta( int d5 );
 
     
     double U_tCart( double e, double p, double u0);
@@ -51,6 +56,8 @@ private:
     double ZComp( double U0, double U3, double eta);
     double DiffCart(double Uabs, double U0, double x);
     double EfromUCart( double Uabs, double U0, double vtilde);
+    std::string AskDirection3Cart( int direction );
+    std::string AskDirection5Cart( int d5 );
     
     void CopyArena( std::array<int, 3> i_copy, std::array<int, 3> i_og);
 
@@ -105,8 +112,14 @@ public:
     double abs_vector3(double x,double y, double z){
             return sqrt( x*x+y*y+z*z );
     }
-
-
+    
+    std::string AskDirection3dim( int direction ){
+        return (this->*AskDirection3)(direction);
+    }
+    
+    std::string AskDirection( int d5 ){
+        return (this->*AskDirection5)(d5);
+    }
     
 };
 

@@ -40,121 +40,132 @@ void PPM::InitializeHydro(Parameter parameter_list) {
         JSDEBUG << s << " to be initilizied ...";
         Welcome();
         
- 
-        double taus;
-        ppm->FirstChildElement("taus")->QueryDoubleText(&taus);
-        DATA.tau0 = taus;
+        int test_mode;
+        ppm->FirstChildElement("test_mode")->QueryIntText(&test_mode);
+        DATA.test_mode = test_mode;
         
-        int info_memory;
-        ppm->FirstChildElement("store_info")->QueryIntText(&info_memory);
-        DATA.store_hydro_info_in_memory = info_memory;
-        
-        int weos;
-        ppm->FirstChildElement("whichEOS")->QueryIntText(&weos);
-        DATA.whichEOS = weos;
-        if(DATA.whichEOS == 1){
-            string eos_files;
-            eos_files = ppm->FirstChildElement("EOSfiles")->GetText();
-            DATA.eos_files = eos_files;
-        }
-
-        
-        int profile_type;
-        ppm->FirstChildElement("profileType")->QueryIntText(&profile_type);
-        DATA.profileType = profile_type;
-        
-        if( DATA.profileType == 0 ){
-            double s_factor;
-            ppm->FirstChildElement("s_factor")->QueryDoubleText(&s_factor);
-            DATA.sFactor = s_factor;
-        }else if( DATA.profileType ==4 ){
-            string input_profile;
-            int init_profile_long;
-            input_profile = ppm->FirstChildElement("profileInput")->GetText();
-            ppm->FirstChildElement("initProfileLong")
-            ->QueryIntText(&init_profile_long);
-            DATA.profile_input_file = input_profile;
-            DATA.init_profile_long = init_profile_long;
-        }else if( DATA.profileType==1 ||
-                  DATA.profileType==2 ||
-                  DATA.profileType==3 ){
-            double T0;
-            ppm->FirstChildElement("T0")->QueryDoubleText(&T0);
-            DATA.T0 = T0;
-        }
-        
-
-        int add_cell;
-        ppm->FirstChildElement("addCell")->QueryIntText(&add_cell);
-        DATA.addCell = add_cell;
-        
-        int nt;
-        ppm->FirstChildElement("nt")->QueryIntText(&nt);
-        DATA.nt = nt;
-
-        double dtau;
-        ppm->FirstChildElement("dtau")->QueryDoubleText(&dtau);
-        DATA.delta_tau = dtau;
-
-        
-        if( DATA.addCell==1 || DATA.profileType != 0 ){
+        if( test_mode != 0 ){
             
-            int nt,nx,ny,neta;
+            SetTestMode();
+            
+        }else{
+            
+            double taus;
+            ppm->FirstChildElement("taus")->QueryDoubleText(&taus);
+            DATA.tau0 = taus;
+            
+            int info_memory;
+            ppm->FirstChildElement("store_info")->QueryIntText(&info_memory);
+            DATA.store_hydro_info_in_memory = info_memory;
+            
+            int weos;
+            ppm->FirstChildElement("whichEOS")->QueryIntText(&weos);
+            DATA.whichEOS = weos;
+            if(DATA.whichEOS == 1){
+                string eos_files;
+                eos_files = ppm->FirstChildElement("EOSfiles")->GetText();
+                DATA.eos_files = eos_files;
+            }
+            
+            
+            int profile_type;
+            ppm->FirstChildElement("profileType")->QueryIntText(&profile_type);
+            DATA.profileType = profile_type;
+            
+            if( DATA.profileType == 0 ){
+                double s_factor;
+                ppm->FirstChildElement("s_factor")->QueryDoubleText(&s_factor);
+                DATA.sFactor = s_factor;
+            }else if( DATA.profileType ==4 ){
+                string input_profile;
+                int init_profile_long;
+                input_profile = ppm->FirstChildElement("profileInput")->GetText();
+                ppm->FirstChildElement("initProfileLong")
+                ->QueryIntText(&init_profile_long);
+                DATA.profile_input_file = input_profile;
+                DATA.init_profile_long = init_profile_long;
+            }else if( DATA.profileType==1 ||
+                     DATA.profileType==2 ||
+                     DATA.profileType==3 ){
+                double T0;
+                ppm->FirstChildElement("T0")->QueryDoubleText(&T0);
+                DATA.T0 = T0;
+            }
+            
+            
+            int add_cell;
+            ppm->FirstChildElement("addCell")->QueryIntText(&add_cell);
+            DATA.addCell = add_cell;
+            
+            int nt;
             ppm->FirstChildElement("nt")->QueryIntText(&nt);
-            ppm->FirstChildElement("nx")->QueryIntText(&nx);
-            ppm->FirstChildElement("ny")->QueryIntText(&ny);
-            ppm->FirstChildElement("neta")->QueryIntText(&neta);
-            DATA.nx = nx;
-            DATA.ny = ny;
-            DATA.neta = neta;
+            DATA.nt = nt;
             
-            double dx,deta;
-            ppm->FirstChildElement("dx")->QueryDoubleText(&dx);
-            ppm->FirstChildElement("deta")->QueryDoubleText(&deta);
-            DATA.delta_x = dx;
-            DATA.delta_y = dx;
-            DATA.delta_eta = deta;
+            double dtau;
+            ppm->FirstChildElement("dtau")->QueryDoubleText(&dtau);
+            DATA.delta_tau = dtau;
             
-            DATA.x_size = DATA.delta_x*(DATA.nx - 1);
-            DATA.y_size = DATA.delta_y*(DATA.ny - 1);
-            DATA.eta_size = DATA.delta_eta*(DATA.neta - 1);
+            
+            if( DATA.addCell==1 || DATA.profileType != 0 ){
+                
+                int nt,nx,ny,neta;
+                ppm->FirstChildElement("nt")->QueryIntText(&nt);
+                ppm->FirstChildElement("nx")->QueryIntText(&nx);
+                ppm->FirstChildElement("ny")->QueryIntText(&ny);
+                ppm->FirstChildElement("neta")->QueryIntText(&neta);
+                DATA.nx = nx;
+                DATA.ny = ny;
+                DATA.neta = neta;
+                
+                double dx,deta;
+                ppm->FirstChildElement("dx")->QueryDoubleText(&dx);
+                ppm->FirstChildElement("deta")->QueryDoubleText(&deta);
+                DATA.delta_x = dx;
+                DATA.delta_y = dx;
+                DATA.delta_eta = deta;
+                
+                DATA.x_size = DATA.delta_x*(DATA.nx - 1);
+                DATA.y_size = DATA.delta_y*(DATA.ny - 1);
+                DATA.eta_size = DATA.delta_eta*(DATA.neta - 1);
+                
+            }
+            
+            int source;
+            ppm->FirstChildElement("source")->QueryIntText(&source);
+            DATA.source = source;
+            
+            
+            int write_output;
+            ppm->FirstChildElement("writeOutput")->QueryIntText(&write_output);
+            DATA.write_output = write_output;
+            if(write_output == 1){
+                string profile_output;
+                profile_output = ppm->FirstChildElement("profileOutput")->GetText();
+                DATA.profile_output = profile_output;
+            }
+            
+            int freezeout;
+            ppm->FirstChildElement("freezeout")->QueryIntText(&freezeout);
+            DATA.fo_type = freezeout;
+            if(freezeout != 0){
+                double t_fo;
+                string fo_surface;
+                ppm->FirstChildElement("T_freezeout")->QueryDoubleText(&t_fo);
+                fo_surface = ppm->FirstChildElement("surface_name")->GetText();
+                DATA.temp_fo = t_fo;
+                DATA.fo_surface = fo_surface;
+                int surf_check;
+                ppm->FirstChildElement("surface_check")->QueryIntText(&surf_check);
+                DATA.surface_check = surf_check;
+            }
+            
+            double t_sq, rap_wid;
+            ppm->FirstChildElement("rapidity_window")->QueryDoubleText(&rap_wid);
+            ppm->FirstChildElement("transverse_square")->QueryDoubleText(&t_sq);
+            DATA.rapidity_window = rap_wid;
+            DATA.transverse_square = t_sq;
             
         }
-
-        int source;
-        ppm->FirstChildElement("source")->QueryIntText(&source);
-        DATA.source = source;
-
-        
-        int write_output;
-        ppm->FirstChildElement("writeOutput")->QueryIntText(&write_output);
-        DATA.write_output = write_output;
-        if(write_output == 1){
-            string profile_output;
-            profile_output = ppm->FirstChildElement("profileOutput")->GetText();
-            DATA.profile_output = profile_output;
-        }
-        
-        int freezeout;
-        ppm->FirstChildElement("freezeout")->QueryIntText(&freezeout);
-        DATA.fo_type = freezeout;
-        if(freezeout != 0){
-            double t_fo;
-            string fo_surface;
-            ppm->FirstChildElement("T_freezeout")->QueryDoubleText(&t_fo);
-            fo_surface = ppm->FirstChildElement("surface_name")->GetText();
-            DATA.temp_fo = t_fo;
-            DATA.fo_surface = fo_surface;
-            int surf_check;
-            ppm->FirstChildElement("surface_check")->QueryIntText(&surf_check);
-            DATA.surface_check = surf_check;
-        }
-        
-        double t_sq, rap_wid;
-        ppm->FirstChildElement("rapidity_window")->QueryDoubleText(&rap_wid);
-        ppm->FirstChildElement("transverse_square")->QueryDoubleText(&t_sq);
-        DATA.rapidity_window = rap_wid;
-        DATA.transverse_square = t_sq;
         
     } else {
         JSWARN << " : PPM not properly initialized in XML file ...";
@@ -168,11 +179,73 @@ void PPM::InitializeHydro(Parameter parameter_list) {
         case 0: eos = std::make_shared<MasslessIdeal>(); break;
         default: eos = std::make_shared<EOS>();
     }
-
+    
     //setup Initial
     initial = nullptr;
     initial = std::unique_ptr<Initial> (new Initial( eos, DATA, arena ));
+    
+}
 
+void PPM::SetTestMode(){
+    
+    JSINFO << "=============================================";
+    JSINFO << "                TEST MODE!!                  ";
+
+    
+    DATA.store_hydro_info_in_memory = 0;
+    DATA.whichEOS = 0;
+
+    DATA.nt = 10;
+    
+    DATA.delta_tau = 0.3;
+    DATA.delta_x = 0.3;
+    DATA.delta_y = 0.3;
+    DATA.delta_eta = 0.3;
+    
+    switch (DATA.test_mode) {
+        case 1://long
+            JSINFO << "               longitudinal                 ";
+            DATA.tau0 = 0.6;
+            DATA.profileType = 1;
+            DATA.nx = 1;
+            DATA.ny = 1;
+            DATA.neta = 5;
+            break;
+
+        case 2://trans
+            JSINFO << "                transverse                  ";
+            DATA.tau0 = 0;
+            DATA.profileType = 2;
+            DATA.nx = 5;
+            DATA.ny = 1;
+            DATA.neta = 1;
+            break;
+            
+        default:
+            JSINFO<< "<-[PPM] Bad Input For Test Mode ->";
+            exit(-1);
+            break;
+            
+    }
+    
+    JSINFO << "=============================================";
+    
+    DATA.x_size = DATA.delta_x*(DATA.nx - 1);
+    DATA.y_size = DATA.delta_y*(DATA.ny - 1);
+    DATA.eta_size = DATA.delta_eta*(DATA.neta - 1);
+
+    DATA.source = 0;
+    DATA.write_output = 0;
+    DATA.profile_output = "test_mode_profile.txt";//dummy
+    DATA.fo_type = 1;
+    string fo_surface = "test_mode_surface.txt";
+    DATA.temp_fo = 0.2;
+    DATA.fo_surface = 1;
+    DATA.surface_check = 1;
+    
+    DATA.rapidity_window = 100;
+    DATA.transverse_square = 100;
+        
 }
 
 void PPM::SetInitialProfile(){
@@ -195,7 +268,6 @@ void PPM::SetInitialProfile(){
         JSWARN<< "<-[PPM] Please Set Initial Condition ->";
         exit(-1);
     }
-    
     initial->InitArena( run_num );
     
 }
@@ -211,7 +283,7 @@ void PPM::EvolveHydro() {
 }
 
 void PPM::RunHydro() {
-
+    
     evolve = std::shared_ptr<Evolve> (new Evolve( run_num, eos, DATA, arena ));
     
     evolve->EvolveIt();

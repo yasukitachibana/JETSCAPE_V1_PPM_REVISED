@@ -197,6 +197,7 @@
     <!-- PPM  -->
     <PPM>
         <name>PPM</name>
+        <test_mode>1</test_mode><!-- (0: default, 1: 1D small space test_mode) -->
         <taus>0.6</taus>
         <store_info>0</store_info>
         <s_factor>57.00</s_factor>

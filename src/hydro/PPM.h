@@ -28,6 +28,8 @@ private:
     void SetInitialProfile();
     void RunHydro();
     void Welcome();
+    
+    void SetTestMode();
 
   
 public:

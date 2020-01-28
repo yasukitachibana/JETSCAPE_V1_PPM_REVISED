@@ -40,6 +40,8 @@ void FluidValuables::SetCartesian(){
     ThirdComp = &FluidValuables::ZComp;
     Difference = &FluidValuables::DiffCart;
     GetEfromU = &FluidValuables::EfromUCart;
+    AskDirection3 = &FluidValuables::AskDirection3Cart;
+    AskDirection5 = &FluidValuables::AskDirection5Cart;
 }
 
 void FluidValuables::SetTauEta(){
@@ -50,33 +52,46 @@ void FluidValuables::SetTauEta(){
     ThirdComp = &FluidValuables::EtaComp;
     Difference = &FluidValuables::Diff;
     GetEfromU = &FluidValuables::EfromU;
+    AskDirection3 = &FluidValuables::AskDirection3TauEta;
+    AskDirection5 = &FluidValuables::AskDirection5TauEta;
 }
 
 
 void FluidValuables::SetInitialProfile(){
+    
+    std::array<double, 5> zeros = {0.0,0.0,0.0,0.0,0.0};
+    
     JSINFO << "<-[PPM] Set Initial Fluid Valuables ->";
     for (int ix = 0; ix < grid_nx; ix++) {
         for (int iy = 0; iy < grid_ny; iy++) {
             for (int ieta = 0; ieta < grid_neta; ieta++) {
                 
-                arena(ix,iy,ieta).U[0]
-                = (this->*U_0)( arena(ix,iy,ieta).epsilon,
-                               arena(ix,iy,ieta).p,
-                               arena(ix,iy,ieta).u[0] );
-                
-                for( int d=0; d<3; d++){
-                    arena(ix,iy,ieta).U[d+1]
-                    = (this->*U_i)( arena(ix,iy,ieta).epsilon,
+                if( arena(ix,iy,ieta).epsilon > DBL_MIN ){
+                    
+                    arena(ix,iy,ieta).U[0]
+                    = (this->*U_0)( arena(ix,iy,ieta).epsilon,
                                    arena(ix,iy,ieta).p,
-                                   arena(ix,iy,ieta).u[0],
-                                   arena(ix,iy,ieta).u[d+1] );
+                                   arena(ix,iy,ieta).u[0] );
+                    
+                    for( int d=0; d<3; d++){
+                        arena(ix,iy,ieta).U[d+1]
+                        = (this->*U_i)( arena(ix,iy,ieta).epsilon,
+                                       arena(ix,iy,ieta).p,
+                                       arena(ix,iy,ieta).u[0],
+                                       arena(ix,iy,ieta).u[d+1] );
+                    }
+                    
+                    arena(ix,iy,ieta).U[4]
+                    = (this->*U_c)( arena(ix,iy,ieta).rhob,
+                                   arena(ix,iy,ieta).u[0] );
+                    
+                }else{
+                    arena(ix,iy,ieta).U = zeros;
                 }
                 
-                arena(ix,iy,ieta).U[4]
-                = (this->*U_c)( arena(ix,iy,ieta).rhob,
-                               arena(ix,iy,ieta).u[0] );
-                
-                arena(ix,iy,ieta).U_prev = arena(ix,iy,ieta).U;
+                for(int d3=0; d3<3; d3++){
+                    arena(ix,iy,ieta).U_surf[d3] = zeros;
+                }
                 
             }
         }
@@ -112,7 +127,10 @@ void FluidValuables::GetTotalConservedQuantities( int init ){
     }
     
     JSINFO
-    << "<-[PPM]  tau (t) = " << coord->tau*hbarc << " fm/c, "
+    << "<-[PPM]  "
+    << (this->*AskDirection5)(0)
+    << "= "
+    << coord->tau*hbarc << " fm/c, "
     << "TotalE = " << TotalE << " GeV, "
     << "TotalPx = " << TotalPx << " GeV/c, "
     << "TotalPy = " << TotalPy << " GeV/c, "
@@ -142,7 +160,6 @@ void FluidValuables::SetPreviousThermalVal(){
                 
                 //arena(ix,iy,ieta).epsilon_prev = arena(ix,iy,ieta).epsilon;
                 arena(ix,iy,ieta).T_prev = arena(ix,iy,ieta).T;
-                arena(ix,iy,ieta).U_prev = arena(ix,iy,ieta).U;
                 //arena(ix,iy,ieta).u_prev = arena(ix,iy,ieta).u;
                 
                 TotalE +=
@@ -160,7 +177,9 @@ void FluidValuables::SetPreviousThermalVal(){
         }
     }
     
-    JSINFO << "<-[PPM] tau (t) = " << coord->tau*hbarc << " fm/c ->";
+    JSINFO << "<-[PPM] "
+    << (this->*AskDirection5)(0) << "= "
+    << coord->tau*hbarc << " fm/c ->";
     
     JSINFO
     << "<-[PPM] TotalE = " << TotalE << " GeV, "
@@ -317,11 +336,11 @@ void FluidValuables::CopyArena( std::array<int, 3> i_copy, std::array<int, 3> i_
 }
 
 double FluidValuables::SolveV(double Uabs, double U0){
-
+    
     double vmin = 0.0;
     double vmax = 1.0;
     double v;
-
+    
     for(int i = 0; i < max_times; i++){
         v = ( vmin + vmax )/2.0;
         double diff = (this->*Difference)( Uabs, U0, v ); // B = v - f(v)
@@ -341,17 +360,17 @@ double FluidValuables::Direction(double Ux, double Uabs ){
 }
 
 void FluidValuables::CalcThermalVal( const std::array<double, 5> &U, const double Uabs,
-                                     std::array<double, 4> &u,
-                                     double &e, double &rhob, double &p, double &temp ){
+                                    std::array<double, 4> &u,
+                                    double &e, double &rhob, double &p, double &temp ){
     
     double vabs =  Uabs<1e-80 ? 0.
     :SolveV( Uabs, U[0] );
-
+    
     e = (this->*GetEfromU)( Uabs, U[0], vabs );
     rhob = 0.0;
     p = eos->P(e);
     temp = eos->T(e);
-
+    
     u[0] = 1.0/sqrt(1.0-vabs*vabs);
     for( int d4=1; d4<4; d4++){
         u[d4] = u[0] * vabs * Direction( U[d4], Uabs );
@@ -360,9 +379,9 @@ void FluidValuables::CalcThermalVal( const std::array<double, 5> &U, const doubl
 }
 
 void FluidValuables::GetThermalVal( const std::array<double, 5> &U,
-                                    std::array<double, 4> &u,
-                                    double &e, double &rhob, double &p, double &temp ){
-
+                                   std::array<double, 4> &u,
+                                   double &e, double &rhob, double &p, double &temp ){
+    
     double uabs2 = 0.0;
     for( int d=0; d<3; d++){
         uabs2 += U[d+1]*U[d+1];
@@ -370,7 +389,7 @@ void FluidValuables::GetThermalVal( const std::array<double, 5> &U,
     double Uabs = sqrt(uabs2);
     
     CalcThermalVal( U, Uabs, u, e, rhob, p, temp );
-
+    
 }
 
 
@@ -401,10 +420,15 @@ void FluidValuables::SetThermalVal( const std::array<int, 3> &i ){
         arena(i[0],i[1],i[2]).u[3] = 0.0;
         
     }else{
-
+        
         double Uabs = sqrt(uabs2);
-
+        
         if( det <= 0.0 ){
+            
+//            JSINFO << arena(i[0],i[1],i[2]).U[0];
+//            JSINFO << arena(i[0],i[1],i[2]).U[1];
+//            JSINFO << arena(i[0],i[1],i[2]).U[2];
+//            JSINFO << arena(i[0],i[1],i[2]).U[3];
             //            double corf =
             //            //0.9999
             //            * arena(i[0],i[1],i[2]).U[0]
@@ -416,14 +440,14 @@ void FluidValuables::SetThermalVal( const std::array<int, 3> &i ){
             //            Uabs
             //            = 0.9999
             //            * arena(i[0],i[1],i[2]).U[0];
-
+            
             double U0new = Uabs/0.999999;
-
+            
             if( arena(i[0],i[1],i[2]).U[0] > U0standard &&
-                fabs(U0new - arena(i[0],i[1],i[2]).U[0])/arena(i[0],i[1],i[2]).U[0] > 0.95 ){
-
+               fabs(U0new - arena(i[0],i[1],i[2]).U[0])/arena(i[0],i[1],i[2]).U[0] > 0.95 ){
+                
                 miss_energy += (U0new - arena(i[0],i[1],i[2]).U[0])*coord->dV;
-
+                
                 if( miss_energy > 3.0){
                     JSINFO << "-Error- Space Like Fluid Cell. Spacelikeness is too large. ";
                     JSINFO << "U0=" << arena(i[0],i[1],i[2]).U[0];
@@ -433,24 +457,83 @@ void FluidValuables::SetThermalVal( const std::array<int, 3> &i ){
                     exit(-1);
                 }
             }
-
+            
             arena(i[0],i[1],i[2]).U[0]
             = U0new;
-
+            
         }
         
         std::array<double, 4> u_get;
         double e_get, rhob_get, p_get, temp_get;
         
         CalcThermalVal( arena(i[0],i[1],i[2]).U, Uabs,
-                        u_get, e_get, rhob_get, p_get, temp_get);
-
+                       u_get, e_get, rhob_get, p_get, temp_get);
+        
         arena(i[0],i[1],i[2]).u = u_get;
         arena(i[0],i[1],i[2]).epsilon = e_get;
         arena(i[0],i[1],i[2]).rhob = rhob_get;
         arena(i[0],i[1],i[2]).p = p_get;
         arena(i[0],i[1],i[2]).T = temp_get;
-
+        
     }
 }
 
+std::string FluidValuables::AskDirection3Cart( int direction ){
+    switch (direction) {
+        case 0:
+            return "x";
+        case 1:
+            return "y";
+        case 2:
+            return "z";
+        default:
+            return "error!";
+    }
+}
+
+std::string FluidValuables::AskDirection3TauEta( int direction ){
+    switch (direction) {
+        case 0:
+            return "x";
+        case 1:
+            return "y";
+        case 2:
+            return "eta";
+        default:
+            return "error!";
+    }
+}
+
+std::string FluidValuables::AskDirection5Cart( int d5 ){
+    switch (d5) {
+        case 0:
+            return "t";
+        case 1:
+            return "x";
+        case 2:
+            return "y";
+        case 3:
+            return "z";
+        case 4:
+            return "current";
+        default:
+            return "error!";
+    }
+}
+
+std::string FluidValuables::AskDirection5TauEta( int d5 ){
+    switch (d5) {
+        case 0:
+            return "tau";
+        case 1:
+            return "x";
+        case 2:
+            return "y";
+        case 3:
+            return "z";
+        case 4:
+            return "current";
+        default:
+            return "error!";
+    }
+}

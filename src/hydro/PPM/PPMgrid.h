@@ -87,7 +87,11 @@ typedef struct {
     double T_prev;
     
     std::array<double, 5> U;
-    std::array<double, 5> U_prev;
+    
+    std::array<std::array<double, 5>, 3> U_surf;
+    
+    //std::array<double, 5> U_prev;
+    
     std::array<double, 4> u;
     //std::array<double, 4> u_prev;
     

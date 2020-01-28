@@ -8,6 +8,7 @@
 #include "PPMcoord.h"
 #include "PPMstatus.h"
 #include "PPMfluidVal.h"
+#include "PPMeos.h"
 #include "PPMsurfaceCheck.h"
 
 #include <string>
@@ -32,6 +33,7 @@ private:
     
     std::shared_ptr<Coordinates> coord;
     std::shared_ptr<FluidValuables> fval;
+    std::shared_ptr<EOS> eos;
     
     int run_num;
     
@@ -58,12 +60,13 @@ private:
                                                   {0,1,0},
                                                   {0,0,1}}};
     
-    
+    double GetE( double U, double u0, double ux );
     
 public:
     Freezeout( int run_num_in,
               std::shared_ptr<Coordinates> coord_in,
               std::shared_ptr<FluidValuables> fval_in,
+              std::shared_ptr<EOS> eos_in,
               InitData &DATA_in,
               SCGrid &arena_in );
     ~Freezeout();// destructor

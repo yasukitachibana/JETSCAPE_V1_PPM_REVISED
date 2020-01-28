@@ -41,6 +41,8 @@ private:
     void InitProfileBjorken();
     void InitProfile3DGaussian();
     
+    void InitTestMode();
+    
     static const int n_x_input = 201; // Dani's 2D profile table
     const double dx_input = 0.1; // Dani's 2D profile table
     const double size_input = 10.0; // Dani's 2D profile table

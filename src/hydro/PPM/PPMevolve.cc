@@ -35,8 +35,11 @@ void Evolve::InitialSetting(){
         JSINFO << "<-[PPM] Set Cartesian Coordinates ->";
         coord->SetCartesian();
         fval->SetCartesian();
-        F_0 = &Evolve::F_tCart;
-        F_i = &Evolve::F_xCart;
+        F_U[0] = &Evolve::F_tCart;
+        F_U[1] = &Evolve::F_xCart;
+        F_U[2] = &Evolve::F_xCart;
+        F_U[3] = &Evolve::F_xCart;
+        F_U[4] = &Evolve::Fcurrent;
         Flux[0] = &Evolve::FluxTrans;
         Flux[1] = &Evolve::FluxTrans;
         Flux[2] = &Evolve::FluxTrans;
@@ -44,8 +47,11 @@ void Evolve::InitialSetting(){
         JSINFO << "<-[PPM] Tau-Eta Coordinates ->";
         coord->SetTauEta();
         fval->SetTauEta();
-        F_0 = &Evolve::F_tau;
-        F_i = &Evolve::F_x;
+        F_U[0] = &Evolve::F_tau;
+        F_U[1] = &Evolve::F_x;
+        F_U[2] = &Evolve::F_x;
+        F_U[3] = &Evolve::F_x;
+        F_U[4] = &Evolve::Fcurrent;
         Flux[0] = &Evolve::FluxTrans;
         Flux[1] = &Evolve::FluxTrans;
         Flux[2] = &Evolve::FluxTransEta;
@@ -58,7 +64,7 @@ void Evolve::InitialSetting(){
     (new Printer( run_num, eos, coord, DATA, arena ));
     
     freezeout = std::unique_ptr<Freezeout>
-    (new Freezeout( run_num, coord, fval, DATA, arena ));
+    (new Freezeout( run_num, coord, fval, eos, DATA, arena ));
     
     if( DATA.source==1 ){
         liquefier = std::unique_ptr<Liquefier>
@@ -67,8 +73,8 @@ void Evolve::InitialSetting(){
         source_gauss = std::unique_ptr<SourceGauss>
         (new SourceGauss( run_num, coord, fval, DATA, arena ));
     }
-
-
+    
+    
 }
 
 void Evolve::EvolveIt(){
@@ -91,7 +97,10 @@ void Evolve::EvolveIt(){
         JSINFO << "<-[PPM] ######################################################################################### ->";
         JSINFO
         << "<-[PPM] Starting time step: "<< it << "/" << itmax
-        <<", tau (t): "<<coord->tau*hbarc<<"->"<<(coord->tau+coord->dtau)*hbarc
+        <<", "
+        << fval->AskDirection( 0 )
+        << " "
+        <<coord->tau*hbarc<<"->"<<(coord->tau+coord->dtau)*hbarc
         <<" fm ->";
         ppm_status = ppm_running;
         StepDtau( it, evoDir );
@@ -103,7 +112,9 @@ void Evolve::EvolveIt(){
     JSINFO
     << "<-[PPM] Hydro Evolution Run "
     << run_num
-    <<" Done. tau (t) = "
+    <<" Done. "
+    << fval->AskDirection( 0 )
+    << "= "
     << coord->tau*hbarc
     <<" fm/c ->";
     
@@ -129,11 +140,9 @@ void Evolve::StepDtau( int it, std::array<int, 3> &evoDir ){
         DirExchange( it, evoDir );
     }else{
         coord->dxtilde[2] = coord->tau*coord->dx[2];
-        MiniStep( 0.5, evoDir[0] );
+        MiniStep( 1.0, evoDir[0] );
         MiniStep( 1.0, evoDir[1] );
-        MiniStep( 0.5, evoDir[0] );
         MiniStep( 1.0, evoDir[2] );
-        
         if( DATA.source==1 ){
             JSINFO
             << "<-[PPM] Liquefier for Tau-Eta coordinates is coming soon. Exit. ->";
@@ -149,9 +158,11 @@ void Evolve::StepDtau( int it, std::array<int, 3> &evoDir ){
 }
 
 
-void Evolve::MiniStep( double strang, int direction){
+void Evolve::MiniStep( double strang, int direction ){
 
-    JSINFO << "<-[PPM] (" << (strang)  << "/3) Step ->";
+    JSINFO << "<-[PPM] (" << (strang)  << "/3) Step, "
+           << fval->AskDirection3dim(direction)
+            << "-direction ->";
     
     double dstrang = coord->dtau*strang;
     double dtdx = (dstrang/coord->dxtilde[direction]);
@@ -199,7 +210,7 @@ void Evolve::MiniStep( double strang, int direction){
             GetBorderValuables( U_R[1], direction,
                                v_R[1], c_R[1], p_dummy );
             
-            
+                        
             for( int i = 3; i < ncell[0]-2; i++ ){
                 
                 SetFluidEvoIndexSet(i_evo, i, j, k, s);
@@ -231,11 +242,15 @@ void Evolve::MiniStep( double strang, int direction){
                 GetUbarL( U_plus, U_mem[2], U_L[1], U_R[1],
                          v_L[1], c_L[1], v_R[0], c_R[0], dtdx );
                 
-                std::array<double, 5> flux = {0,0,0,0,0};
-                GetFluxHlle(flux, U_minus, U_plus, direction);
+                std::array<double, 5> U_surf = {0.,0.,0.,0.,0.};
+                std::array<double, 5> flux = {0.,0.,0.,0.,0.};
+                GetFluxHlle(U_surf, flux, U_minus, U_plus, direction);
                 
                 //0: i-2, 1:i-1, 2: i, 3: i+1, 4: i+2
                 (this->*Flux[direction])(flux, i_evo[1], i_evo[2], dtdx);
+                
+                arena(i_evo[1][0], i_evo[1][1], i_evo[1][2]).U_surf[direction]
+                = U_surf;
                 
             }
         }
@@ -350,19 +365,32 @@ void Evolve::SetMonoComponent( double &UR, double &UL, double &UU){
 void Evolve::GetBorderValuables(std::array<double, 5> &U, int direction,
                                 double &vx, double &c, double &p){
     double det = U[0]*U[0];
-    for( int d=0; d<3; d++){
-        det -= U[d+1] * U[d+1];
-    }
     
-    if( U[0] <= 0.0 || det <= 0.0){
+    double uabs2 = 0.0;
+    for( int d=0; d<3; d++){
+        uabs2 += U[d+1] * U[d+1];
+    }
+
+    det -= uabs2;
+
+    if( U[0] <= 0.0 ){
+        
         for( int d5=0; d5<5; d5++){
             U[d5] = 0.0;
         }
         vx = 0.0;
         c = 0.0;
         p = 0.0;
+
     }else{
-        double Uabs = fval->abs_vector3( U[1], U[2], U[3] );
+        
+        double Uabs = sqrt(uabs2);
+        
+        if( det <= 0.0 ){
+            double U0new = Uabs/0.999999;
+            U[0] = U0new;
+        }
+        
         double vabs = Uabs<1e-80 ? 0. :fval->SolveV( Uabs, U[0] );
         double e = fval->SetEfromU( Uabs, U[0], vabs );
         p = eos->P( e );
@@ -461,7 +489,9 @@ double Evolve::GetUbarLComponent(double U, double UL, double UR,
     return UL+(lambda/2.0)*(DelU+(1.0-(2.0/3.0)*lambda)*U6);
 }
 
-void Evolve::GetFluxHlle(std::array<double, 5> &flux,
+
+void Evolve::GetFluxHlle(std::array<double, 5> &U_surf,
+                         std::array<double, 5> &flux,
                          std::array<double, 5> &U_minus,
                          std::array<double, 5> &U_plus,
                          int direction){
@@ -488,10 +518,14 @@ void Evolve::GetFluxHlle(std::array<double, 5> &flux,
     b_minus = GetBminus( v_h, c_h, v_minus, c_minus);
     
     if( fabs(b_plus - b_minus) > 10e-30 ) {
-        GetFh( flux, U_plus, U_minus,
-              b_plus, b_minus, v_plus, v_minus,
-              p_plus, p_minus, direction );
+        
+        GetSurf(U_surf,flux,
+                U_plus, U_minus,
+                b_plus, b_minus, v_plus, v_minus,
+                p_plus, p_minus, direction );
+                
     }
+
 }
 
 double Evolve::GetBminus(double v_h, double c_h,
@@ -508,60 +542,43 @@ double Evolve::GetBplus(double v_h, double c_h,
                    VelocitySum( v_plus, c_plus ) ) );
 }
 
-void Evolve::GetFh(std::array<double, 5> &flux,
-                   const std::array<double, 5> &U_plus,
-                   const std::array<double, 5> &U_minus,
-                   double b_plus, double b_minus,
-                   double v_plus, double v_minus,
-                   double p_plus, double p_minus,
-                   int direction){
+void Evolve::GetSurf(std::array<double, 5> &U_surf,
+                     std::array<double, 5> &flux,
+                     const std::array<double, 5> &U_plus,
+                     const std::array<double, 5> &U_minus,
+                     double b_plus, double b_minus,
+                     double v_plus, double v_minus,
+                     double p_plus, double p_minus,
+                     int direction){
     
-    std::array<double, 3> p_plus_v = {0.0, 0.0, 0.0};
-    std::array<double, 3> p_minus_v = {0.0, 0.0, 0.0};
-    p_plus_v[direction] = p_plus;
-    p_minus_v[direction] = p_minus;
+    std::array<double, 5>  p_plus_v = { p_plus, 0.0, 0.0, 0.0, 0.0};
+    std::array<double, 5> p_minus_v = {p_minus, 0.0, 0.0, 0.0, 0.0};
+
+     p_plus_v[direction+1] =  p_plus; //direction 0:x 1:y 2:z/eta
+    p_minus_v[direction+1] = p_minus; //direction 0:x 1:y 2:z/eta
     
-    flux[0] = GetFh0Component( U_plus[0], U_minus[0], b_plus, b_minus,
-                              v_plus, v_minus, p_plus, p_minus );
-    for( int d5=1; d5<4; d5++){
-        flux[d5] = GetFhXComponent( U_plus[d5], U_minus[d5],
-                                   b_plus, b_minus,
-                                   v_plus, v_minus,
-                                   p_plus_v[d5-1], p_minus_v[d5-1] );
+    for( int d5=0; d5<5; d5++){
+        
+        double f_plus
+        = (this->*F_U[d5])( U_plus[d5],   v_plus, p_plus_v[d5] );
+        
+        double f_minus
+        = (this->*F_U[d5])( U_minus[d5], v_minus, p_minus_v[d5] );
+        
+        double f_num
+        = b_plus * f_minus - b_minus * f_plus
+        + b_plus * b_minus * ( U_plus[d5] - U_minus[d5] );
+
+        double u_num
+        = b_plus * U_plus[d5] - b_minus * U_minus[d5]
+        - f_plus + f_minus;
+        
+        double den = (b_plus - b_minus);
+        
+        U_surf[d5] = u_num/den;
+        flux[d5]   = f_num/den;
+        
     }
-    
-    
-    flux[4] = GetFhCurrentComponent(U_plus[4], U_minus[4],
-                                    b_plus, b_minus, v_plus, v_minus);
-}
-
-double Evolve::GetFhXComponent(double U_plus, double U_minus,
-                               double b_plus, double b_minus,
-                               double v_plus, double v_minus,
-                               double p_plus, double p_minus){
-    double f_plus = (this->*F_i)( U_plus, v_plus, p_plus );
-    double f_minus = (this->*F_i)( U_minus, v_minus, p_minus );
-    double a = b_plus * f_minus - b_minus * f_plus + b_plus * b_minus * ( U_plus - U_minus );
-    return a/(b_plus - b_minus);
-}
-
-double Evolve::GetFh0Component(double U_plus, double U_minus,
-                               double b_plus, double b_minus,
-                               double v_plus, double v_minus,
-                               double p_plus, double p_minus){
-    double f_plus = (this->*F_0)( U_plus, v_plus, p_plus );
-    double f_minus = (this->*F_0)( U_minus, v_minus, p_minus );
-    double a = b_plus * f_minus - b_minus * f_plus + b_plus * b_minus * ( U_plus - U_minus );
-    return a/(b_plus - b_minus);
-}
-
-double Evolve::GetFhCurrentComponent(double U_plus, double U_minus,
-                                     double b_plus, double b_minus,
-                                     double v_plus, double v_minus){
-    double f_plus = Fcurrent( U_plus, v_plus);
-    double f_minus = Fcurrent( U_minus, v_minus);
-    double a = b_plus * f_minus - b_minus * f_plus + b_plus * b_minus * ( U_plus - U_minus );
-    return a/(b_plus - b_minus);
 }
 
 double Evolve::F_x(double U, double vx, double p){
@@ -580,7 +597,7 @@ double Evolve::F_tCart(double U, double vx, double p){
     return ( U + p ) * vx;
 }
 
-double Evolve::Fcurrent(double U, double vx){
+double Evolve::Fcurrent(double U, double vx, double p_dummy){
     return U * vx;
 }
 
@@ -665,5 +682,6 @@ void Evolve::DirExchange( int it, std::array<int, 3> &evoDir ){
         evoDir[2] = a;
     }
 }
+
 
 

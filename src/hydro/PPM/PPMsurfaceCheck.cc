@@ -108,10 +108,10 @@ void SurfaceCheck::DoCheck(){
         double momz   = 0.0;
 
 
-        energy = T00*SU0 + T01*SU1 + T02*SU2 + T03*SU3;
-        momx   = T10*SU0 + T11*SU1 + T12*SU2 + T13*SU3;
-        momy   = T20*SU0 + T21*SU1 + T22*SU2 + T23*SU3;
-        momz   = T30*SU0 + T31*SU1 + T32*SU2 + T33*SU3;
+        energy = T00*SU0 - T01*SU1 - T02*SU2 - T03*SU3;
+        momx   = T10*SU0 - T11*SU1 - T12*SU2 - T13*SU3;
+        momy   = T20*SU0 - T21*SU1 - T22*SU2 - T23*SU3;
+        momz   = T30*SU0 - T31*SU1 - T32*SU2 - T33*SU3;
 
         total_energy += energy;
         total_momx   += momx  ;

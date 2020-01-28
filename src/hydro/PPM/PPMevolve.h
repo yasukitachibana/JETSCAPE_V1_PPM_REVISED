@@ -28,7 +28,6 @@ private:
     SCGrid &arena;
     
     int ppm_status;
-
     
     std::shared_ptr<Coordinates> coord;
     std::unique_ptr<Liquefier> liquefier;
@@ -41,8 +40,7 @@ private:
     
     void InitialSetting();
     
-    double (Evolve::*F_0)(double U, double vx, double p);
-    double (Evolve::*F_i)(double U, double vx, double p);
+    double (Evolve::*F_U[5])(double U, double vx, double p);
     void (Evolve::*Flux[3])(std::array<double, 5> &flux,
                             const std::array<int, 3> &i_evo_m_1,
                             const std::array<int, 3> &i_evo,
@@ -52,7 +50,7 @@ private:
     double F_tau(double U, double vx, double p);
     double F_xCart(double U, double vx, double p);
     double F_tCart(double U, double vx, double p);
-    double Fcurrent(double U, double vx);
+    double Fcurrent(double U, double vx, double p_dummy);
     
     void FluxTransEta(std::array<double, 5> &flux,
                       const std::array<int, 3> &i_evo_m_1,
@@ -127,7 +125,8 @@ private:
     
     double GetUbarLComponent(double U, double UL, double UR, double lambda);
     
-    void GetFluxHlle(std::array<double, 5> &flux,
+    void GetFluxHlle(std::array<double, 5> &U_surf,
+                     std::array<double, 5> &flux,
                      std::array<double, 5> &U_minus,
                      std::array<double, 5> &U_plus,
                      int direction);
@@ -135,27 +134,18 @@ private:
     double GetBminus(double v_h, double c_h, double v_minus, double c_minus);
     double GetBplus(double v_h, double c_h, double v_plus, double c_plus);
     
-    void GetFh(std::array<double, 5> &flux,
-               const std::array<double, 5> &U_plus,
-               const std::array<double, 5> &U_minus,
-               double b_plus, double b_minus,
-               double v_plus, double v_minus,
-               double p_plus, double p_minus,
-               int direction);
     
-    double GetFhXComponent(double U_plus, double U_minus,
-                           double b_plus, double b_minus,
-                           double v_plus, double v_minus,
-                           double p_plus, double p_minus);
-    double GetFh0Component(double U_plus, double U_minus,
-                           double b_plus, double b_minus,
-                           double v_plus, double v_minus,
-                           double p_plus, double p_minus);
-    double GetFhCurrentComponent(double U_plus, double U_minus,
-                                 double b_plus, double b_minus,
-                                 double v_plus, double v_minus);
 
-    void DirExchange( int it, std::array<int, 3> &evoDir );    
+    void GetSurf(std::array<double, 5> &U_surf,
+                 std::array<double, 5> &flux,
+                 const std::array<double, 5> &U_plus,
+                 const std::array<double, 5> &U_minus,
+                 double b_plus, double b_minus,
+                 double v_plus, double v_minus,
+                 double p_plus, double p_minus,
+                 int direction);
+    
+    void DirExchange( int it, std::array<int, 3> &evoDir );
     
 public:
     Evolve( int run_num, std::shared_ptr<EOS> eos_in, InitData &DATA_in, SCGrid &arena_in );
