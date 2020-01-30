@@ -74,6 +74,7 @@ void Evolve::InitialSetting(){
         (new SourceGauss( run_num, coord, fval, DATA, arena ));
     }
     
+    half_eta = 0.5*coord->dx[2];
     
 }
 
@@ -616,7 +617,6 @@ void Evolve::FluxTransEta(std::array<double, 5> &flux,
     }
     
     flux_component = dtdx * flux[4];
-    
     arena(i_evo_m_1[0], i_evo_m_1[1], i_evo_m_1[2]).U[4]
     -= flux_component;
     arena(i_evo[0], i_evo[1], i_evo[2]).U[4]
@@ -627,16 +627,15 @@ void Evolve::FluxTransEta(std::array<double, 5> &flux,
     double eta_bound = 0.5*(eta_minus+eta_plus);
     
     //TauEta->Cartesian Lorentz transformation
-    double flux_t = dtdx
-    * (flux[0] * cosh(eta_bound) + flux[3] * sinh(eta_bound));
-    double flux_z = dtdx
-    * (flux[3] * cosh(eta_bound) + flux[0] * sinh(eta_bound));
     
-    double flux_tau_minus = flux_t * cosh(eta_minus) - flux_z * sinh(eta_minus);
-    double flux_eta_minus = - flux_t * sinh(eta_minus) + flux_z * cosh(eta_minus);
+    double flux_component_tau = dtdx * flux[0];
+    double flux_component_eta = dtdx * flux[3];
     
-    double flux_tau_plus = flux_t * cosh(eta_plus) - flux_z * sinh(eta_plus);
-    double flux_eta_plus = - flux_t * sinh(eta_plus) + flux_z * cosh(eta_plus);
+    double flux_tau_minus =  flux_component_tau * cosh(half_eta) + flux_component_eta * sinh(half_eta);
+    double flux_eta_minus =  flux_component_tau * sinh(half_eta) + flux_component_eta * cosh(half_eta);
+
+    double flux_tau_plus =   flux_component_tau * cosh(half_eta) - flux_component_eta * sinh(half_eta);
+    double flux_eta_plus = - flux_component_tau * sinh(half_eta) + flux_component_eta * cosh(half_eta);
     
     arena(i_evo_m_1[0], i_evo_m_1[1], i_evo_m_1[2]).U[0] -= flux_tau_minus;
     arena(i_evo[0], i_evo[1], i_evo[2]).U[0] += flux_tau_plus;

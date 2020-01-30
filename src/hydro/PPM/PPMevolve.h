@@ -29,6 +29,8 @@ private:
     
     int ppm_status;
     
+    double half_eta;
+    
     std::shared_ptr<Coordinates> coord;
     std::unique_ptr<Liquefier> liquefier;
     std::unique_ptr<SourceGauss> source_gauss;

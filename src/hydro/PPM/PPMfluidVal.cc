@@ -1,6 +1,6 @@
 #include "PPMfluidVal.h"
 #include "JetScapeLogger.h"
-
+#include <iomanip>
 
 using namespace Jetscape;
 using namespace std;
@@ -25,6 +25,11 @@ FluidValuables::FluidValuables(std::shared_ptr<EOS> eos_in,
     
     miss_energy = 0.0;
     U0standard = eos->E(0.04);
+    
+    std::string conservation_test_filename = "conservation.txt";
+    JSINFO << "<-[PPM] Conservation info file name: '" << conservation_test_filename << "' ->";
+    ofs_cons.open(conservation_test_filename.c_str(), ios_base::out);
+
     
 }
 
@@ -131,10 +136,14 @@ void FluidValuables::GetTotalConservedQuantities( int init ){
     << (this->*AskDirection5)(0)
     << "= "
     << coord->tau*hbarc << " fm/c, "
-    << "TotalE = " << TotalE << " GeV, "
-    << "TotalPx = " << TotalPx << " GeV/c, "
-    << "TotalPy = " << TotalPy << " GeV/c, "
-    << "TotalPz = " << TotalPz << " GeV/c. ->";
+    << "TotalE = "
+    << TotalE << " GeV, "
+    << "TotalPx = "
+    << TotalPx << " GeV/c, "
+    << "TotalPy = "
+    << TotalPy << " GeV/c, "
+    << "TotalPz = "
+    << TotalPz << " GeV/c. ->";
     
     
     if( init == 1 ){
@@ -192,6 +201,15 @@ void FluidValuables::SetPreviousThermalVal(){
     << "DeltaPx = " << TotalPx - initTotalPx << " GeV/c, "
     << "DeltaPy = " << TotalPy - initTotalPy<< " GeV/c, "
     << "DeltaPz = " << TotalPz - initTotalPz<< " GeV/c. ->";
+    
+    
+    ofs_cons
+    << coord->tau*hbarc
+    << " " << std::setprecision(30)
+    << TotalE << " " << std::setprecision(30)
+    << TotalPx << " " << std::setprecision(30)
+    << TotalPy << " " << std::setprecision(30)
+    << TotalPz << std::endl;
     
     if(DATA.profileType == 1){
         JSINFO << "<-[PPM] Bjorken Test ->";

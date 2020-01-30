@@ -8,10 +8,14 @@
 #include "PPMcoord.h"
 
 #include <cfloat>
+#include <string>
+#include <iostream>
 
 class FluidValuables{
     
 private:
+    
+    std::ofstream ofs_cons;
     
     int grid_nx, grid_ny, grid_neta;
     
