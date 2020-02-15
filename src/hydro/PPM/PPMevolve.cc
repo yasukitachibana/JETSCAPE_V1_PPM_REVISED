@@ -250,6 +250,7 @@ void Evolve::MiniStep( double strang, int direction ){
                 //0: i-2, 1:i-1, 2: i, 3: i+1, 4: i+2
                 (this->*Flux[direction])(flux, i_evo[1], i_evo[2], dtdx);
                 
+                
                 arena(i_evo[1][0], i_evo[1][1], i_evo[1][2]).U_surf[direction]
                 = U_surf;
                 

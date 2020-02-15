@@ -26,9 +26,9 @@ FluidValuables::FluidValuables(std::shared_ptr<EOS> eos_in,
     miss_energy = 0.0;
     U0standard = eos->E(0.04);
     
-    std::string conservation_test_filename = "conservation.txt";
-    JSINFO << "<-[PPM] Conservation info file name: '" << conservation_test_filename << "' ->";
-    ofs_cons.open(conservation_test_filename.c_str(), ios_base::out);
+//    std::string conservation_test_filename = "conservation.txt";
+//    JSINFO << "<-[PPM] Conservation info file name: '" << conservation_test_filename << "' ->";
+//    ofs_cons.open(conservation_test_filename.c_str(), ios_base::out);
 
     
 }
@@ -203,14 +203,14 @@ void FluidValuables::SetPreviousThermalVal(){
     << "DeltaPz = " << TotalPz - initTotalPz<< " GeV/c. ->";
     
     
-    ofs_cons
-    << coord->tau*hbarc
-    << " " << std::setprecision(30)
-    << TotalE << " " << std::setprecision(30)
-    << TotalPx << " " << std::setprecision(30)
-    << TotalPy << " " << std::setprecision(30)
-    << TotalPz << std::endl;
-    
+//    ofs_cons
+//    << coord->tau*hbarc
+//    << " " << std::setprecision(30)
+//    << TotalE << " " << std::setprecision(30)
+//    << TotalPx << " " << std::setprecision(30)
+//    << TotalPy << " " << std::setprecision(30)
+//    << TotalPz << std::endl;
+//
     if(DATA.profileType == 1){
         JSINFO << "<-[PPM] Bjorken Test ->";
         int ixc = int(grid_nx/2.0);

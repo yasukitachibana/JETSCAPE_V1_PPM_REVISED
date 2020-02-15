@@ -324,6 +324,16 @@ void Freezeout::SurfaceFreezeout(const std::array<int, 3> &i_cell,
 
             fval->GetThermalVal( U_surf, u_surface, e_surface, rhob_surface, p_surface, temp_surface);
 
+            //Geometrical Source Term Effect
+            if(d == 2){
+                U_surf[0] -= 0.5 * (coord->dtau/coord->tau)*U_surf[0]*u_surface[3]*u_surface[3]/u_surface[0]/u_surface[0];
+                U_surf[0] -= 0.5 * coord->dtau*p_surface*(1.0-(u_surface[3]/u_surface[0])*(u_surface[3]/u_surface[0]));
+                U_surf[3] -= 0.5 * (coord->dtau/coord->tau)*U_surf[3];
+                fval->GetThermalVal( U_surf, u_surface, e_surface, rhob_surface, p_surface, temp_surface);
+            }
+            
+            
+
             ofs_freezeout
             << coord->tau*hbarc << " " //tau in [fm]
             << x_surface << " " //x in [fm]
